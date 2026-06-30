@@ -1,0 +1,54 @@
+.tabs {
+  display: flex;
+}
+
+.tab {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+/* ---- variant: underline (תיק רפואי) ---- */
+.underline {
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.underline .tab {
+  padding: 12px 16px;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1px;
+}
+
+.underline .tab.active {
+  color: var(--accent-ink);
+  border-bottom-color: var(--accent);
+  font-weight: 700;
+}
+
+/* ---- variant: pill (התחברות/הרשמה) ---- */
+.pill {
+  gap: 4px;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.pill .tab {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 9px;
+  text-align: center;
+}
+
+.pill .tab.active {
+  color: var(--brand-ink);
+  background: #fff;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}

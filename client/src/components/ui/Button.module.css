@@ -1,0 +1,93 @@
+.btn {
+  font-family: inherit;
+  font-weight: 700;
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  transition: filter 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(0.97);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0.5px);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ---------- variants ---------- */
+
+.primary {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: var(--shadow-accent);
+}
+
+.secondary {
+  color: var(--brand-ink);
+  background: var(--brand-soft);
+}
+
+.outline {
+  color: var(--ink2);
+  background: #fff;
+  border-color: var(--line);
+  font-weight: 600;
+}
+
+.ghost {
+  color: var(--ink2);
+  background: transparent;
+  font-weight: 600;
+}
+
+.danger {
+  color: var(--accent-ink);
+  background: #fff;
+  border-color: var(--accent-line);
+}
+
+/* מצב מושבת — אחיד לכל ה-variants */
+.btn:disabled {
+  color: #fff;
+  background: #c7cfd7;
+  border-color: transparent;
+  box-shadow: none;
+  filter: none;
+}
+
+/* ---------- sizes ---------- */
+
+.md {
+  font-size: 14.5px;
+  padding: 11px 22px;
+}
+
+.sm {
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 9px;
+}
+
+.cta {
+  font-size: 15.5px;
+  padding: 13px 36px;
+  border-radius: 12px;
+}
+
+.cta.primary {
+  box-shadow: var(--shadow-accent-lg);
+}
+
+.block {
+  width: 100%;
+}

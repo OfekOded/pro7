@@ -1,16 +1,50 @@
-# React + Vite
+# מרפאה חכמה — מערכת ניהול מרפאה וזימון תורים
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+פרויקט גמר בקורס **Full-Stack Web Development** (המרכז האקדמי לב).
+יישום end-to-end לניהול מרפאה: זימון תורים, תיק רפואי, ניהול ביקורים וניתוחים —
+ב-RTL מלא, עם 4 סוגי משתמשים: **מטופל · פקיד/ת קבלה · רופא/ה · מנהל/ת**.
 
-Currently, two official plugins are available:
+> **מצב נוכחי:** הפרונט (8 מסכים + ספריית רכיבים) **בנוי ועובד** על נתוני דמו (mock).
+> שכבת ה-services, ה-AuthContext וכל ה-server הם **שלד עם TODOs מפורטים** לשלב הבא.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## מבנה (מונורפו)
 
-## React Compiler
+```
+.
+├── client/   React 19 + Vite — דפים, רכיבים, ראוטינג, services (UI מלא, mock data)
+├── server/   Node/Express — REST API ב-MVC + MySQL (שלד + schema.sql/seed.sql)
+├── docs/     API.md · DATABASE.md · DESIGN.md · ARCHITECTURE.md
+└── design_handoff_clinic_ui/   רפרנס העיצוב (מקור אמת)
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## הרצה
 
-## Expanding the Oxlint configuration
+**לקוח (מה שעובד עכשיו):**
+```bash
+cd client
+npm install
+npm run dev          # http://localhost:5173
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+**שרת (לאחר מימוש ה-TODOs):**
+```bash
+cd server
+cp .env.example .env         # עדכון פרטי DB ו-JWT
+npm install
+npm run db:schema            # יצירת הסכמה ב-MySQL
+npm run dev                  # http://localhost:4000
+```
+
+או מהשורש: `npm run client` · `npm run server` · `npm run install:all`.
+
+## סטאק
+- **לקוח**: React 19, Vite 8, react-router-dom 7, CSS Modules, אייקוני inline-SVG, oxlint.
+- **שרת**: Express, mysql2, JWT, bcryptjs, multer, cors, morgan.
+- **DB**: MySQL.
+
+## תיעוד
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — סקירה ואיפה מחברים נתונים אמיתיים.
+- [docs/API.md](docs/API.md) — חוזה ה-REST API.
+- [docs/DATABASE.md](docs/DATABASE.md) — מודל הנתונים.
+- [docs/DESIGN.md](docs/DESIGN.md) — מערכת העיצוב.
+- `CLAUDE.md` — הנחיות לעבודה עם הקוד (לסוכן ולמפתחים).

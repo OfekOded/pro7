@@ -1,0 +1,115 @@
+.body {
+  padding: 22px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.filters {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.list {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line2);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.dateBox {
+  width: 50px;
+  height: 50px;
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dateDay {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.dateMonth {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* גוון תיבת התאריך לפי סטטוס */
+.tone-scheduled {
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+}
+
+.tone-completed {
+  background: var(--green-soft);
+  color: var(--green-ink);
+}
+
+.tone-cancelled {
+  background: #eef1f4;
+  color: var(--ink2);
+}
+
+.tone-no_show {
+  background: var(--amber-soft);
+  color: var(--amber-ink);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.doctor {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.meta {
+  font-size: 12.5px;
+  color: var(--ink2);
+  margin-top: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .body {
+    padding: 16px;
+  }
+  .filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+  .row {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+  }
+  .actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

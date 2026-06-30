@@ -1,23 +1,15 @@
 {
-  "name": "pro7",
+  "name": "clinic-monorepo",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "description": "מרפאה חכמה — מערכת ניהול מרפאה וזימון תורים (פרויקט גמר Full-Stack). מונורפו: client (React/Vite) + server (Node/Express/MySQL).",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "oxlint",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
-  },
-  "devDependencies": {
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.2",
-    "oxlint": "^1.69.0",
-    "vite": "^8.1.0"
+    "client": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "client:lint": "npm --prefix client run lint",
+    "server": "npm --prefix server run dev",
+    "install:all": "npm --prefix client install && npm --prefix server install",
+    "db:schema": "npm --prefix server run db:schema",
+    "db:seed": "npm --prefix server run db:seed"
   }
 }

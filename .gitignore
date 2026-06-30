@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Env files (secrets) — keep .env.example tracked
+.env
+.env.local
+.env.*.local
+
+# Uploaded media (server) — keep the folder, ignore its contents
+server/uploads/*
+!server/uploads/.gitkeep
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +31,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Design handoff files
+design_handoff_clinic_ui
+
+# Claude Code
+CLAUDE.md

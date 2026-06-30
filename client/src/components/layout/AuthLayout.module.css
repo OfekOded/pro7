@@ -1,0 +1,138 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.card {
+  width: 100%;
+  max-width: 920px;
+  min-height: 560px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+}
+
+/* ---------- פאנל מיתוג ---------- */
+.brandPanel {
+  width: 42%;
+  flex-shrink: 0;
+  background: var(--gradient-brand);
+  color: #fff;
+  padding: 40px 34px;
+  display: flex;
+  flex-direction: column;
+}
+
+.brandTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brandName {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.tagline {
+  font-size: 13.5px;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+.benefits {
+  list-style: none;
+  margin: auto 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.benefit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+.benefitDot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brandFoot {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* ---------- פאנל טופס ---------- */
+.formPanel {
+  flex: 1;
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* לוגו מובייל — מוסתר בדסקטופ */
+.mobileLogo {
+  display: none;
+}
+
+/* ---------- מובייל ---------- */
+@media (max-width: 768px) {
+  .card {
+    flex-direction: column;
+    min-height: 0;
+    max-width: 420px;
+  }
+  .brandPanel {
+    display: none;
+  }
+  .mobileLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 32px 24px 8px;
+  }
+  .mobileLogo .logo {
+    width: 44px;
+    height: 44px;
+    background: var(--gradient-brand);
+  }
+  .mobileLogo .brandName {
+    color: var(--ink);
+  }
+  .formPanel {
+    padding: 24px 24px 32px;
+  }
+}

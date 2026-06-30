@@ -1,0 +1,37 @@
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  padding: 11px 14px;
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.body {
+  flex: 1;
+}
+
+.success {
+  background: var(--green-soft);
+  border-color: #c8e9da;
+  color: var(--green-ink);
+}
+
+.error {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent-ink);
+}
+
+.info {
+  background: var(--brand-soft);
+  border-color: #cfe6f1;
+  color: var(--brand-ink);
+}

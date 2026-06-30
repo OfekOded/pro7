@@ -1,0 +1,282 @@
+.body {
+  padding: 26px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ---------- כרטיס hero ---------- */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--gradient-brand);
+  border-radius: 18px;
+  padding: 26px 28px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.heroBlob {
+  position: absolute;
+  top: -50px;
+  inset-inline-start: -30px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.heroMain {
+  position: relative;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+.heroBadgeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.heroTitle {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.heroMeta {
+  display: flex;
+  gap: 22px;
+  font-size: 14px;
+  opacity: 0.95;
+  flex-wrap: wrap;
+}
+
+.heroMeta span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.heroActions {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.heroBtnSolid,
+.heroBtnGhost {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.heroBtnSolid {
+  color: var(--brand-ink);
+  background: #fff;
+  border: none;
+}
+
+.heroBtnGhost {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+}
+
+/* ---------- כותרות מקטעים ---------- */
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 13px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 13px;
+}
+
+.sectionHead .sectionTitle {
+  margin-bottom: 0;
+}
+
+.showAll {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+
+/* ---------- פעולות מהירות ---------- */
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.quick {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 18px 16px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quick:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.quickPrimary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(232, 101, 79, 0.26);
+}
+
+.quickIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  margin-bottom: 14px;
+}
+
+.quickIconPrimary {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.tone-brand {
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+}
+
+.tone-green {
+  background: var(--green-soft);
+  color: var(--green-ink);
+}
+
+.tone-gray {
+  background: #eef1f4;
+  color: var(--ink2);
+}
+
+.quickTitle {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.quickDesc {
+  font-size: 12px;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.quickPrimary .quickDesc {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ---------- רשימת תורים ---------- */
+.list {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--line2);
+}
+
+.listRow:last-child {
+  border-bottom: none;
+}
+
+.dateBox {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dateDay {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.dateMonth {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.listBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.listDoctor {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.listMeta {
+  font-size: 12.5px;
+  color: var(--ink2);
+  margin-top: 2px;
+}
+
+/* ---------- מובייל ---------- */
+@media (max-width: 768px) {
+  .body {
+    padding: 18px;
+  }
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .heroActions {
+    flex-direction: row;
+  }
+  .heroBtnSolid,
+  .heroBtnGhost {
+    flex: 1;
+  }
+  .quickGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

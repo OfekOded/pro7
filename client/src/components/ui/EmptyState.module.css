@@ -1,0 +1,42 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 56px 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.desc {
+  font-size: 14px;
+  color: var(--ink2);
+  margin-top: 8px;
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.action {
+  margin-top: 20px;
+}

@@ -1,0 +1,19 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* מרווח תחתון במובייל כדי לפנות מקום לבר הניווט התחתון */
+@media (max-width: 768px) {
+  .content {
+    padding-bottom: 78px;
+  }
+}

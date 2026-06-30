@@ -1,0 +1,46 @@
+.chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  height: 200px;
+  padding-top: 8px;
+}
+
+.col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  gap: 6px;
+}
+
+.value {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.barTrack {
+  flex: 1;
+  width: 100%;
+  max-width: 46px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  background: var(--gradient-brand);
+  min-height: 4px;
+  transition: height 0.4s ease;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+}

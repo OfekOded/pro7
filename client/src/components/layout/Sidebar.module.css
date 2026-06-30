@@ -1,0 +1,103 @@
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: #fff;
+  border-left: 1px solid var(--line);
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px 24px;
+}
+
+.logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--gradient-brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brandName {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  color: var(--ink2);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.item:hover {
+  background: var(--bg);
+}
+
+/* פריט פעיל — נצבע לפי ערכת התפקיד */
+.theme-brand .item.active {
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-weight: 700;
+}
+
+.theme-green .item.active {
+  background: var(--green-soft);
+  color: var(--green-ink);
+  font-weight: 700;
+}
+
+.userCard {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.userInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  font-size: 13.5px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userRole {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* מוסתר במובייל */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}

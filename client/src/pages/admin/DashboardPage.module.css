@@ -1,0 +1,106 @@
+.body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---------- בורר טווח ---------- */
+.rangeGroup {
+  display: flex;
+  gap: 6px;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.rangeBtn {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.rangeActive {
+  color: var(--ink);
+  background: #fff;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- כרטיסי נתונים ---------- */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.statCard {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.statLabel {
+  font-size: 12.5px;
+  color: var(--ink2);
+  margin-bottom: 8px;
+}
+
+.statValue {
+  font-size: 27px;
+  font-weight: 800;
+}
+
+.statDelta {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.up {
+  color: var(--green-ink);
+}
+
+.down {
+  color: var(--accent-ink);
+}
+
+/* ---------- גרפים ---------- */
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 16px;
+}
+
+.chartCard {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.chartTitle {
+  font-size: 14.5px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* ---------- מובייל ---------- */
+@media (max-width: 768px) {
+  .body {
+    padding: 16px;
+  }
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+}
