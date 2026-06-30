@@ -236,6 +236,81 @@
 }
 
 /* ---------- מובייל ---------- */
+/* חיווי "טיוטה נשמרה" */
+.savedPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--green-ink);
+  background: var(--green-soft);
+  padding: 8px 12px;
+  border-radius: 10px;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* שורת מרשם — אנימציית כניסה (רק לשורות חדשות שנוצרות) */
+.rxRow {
+  animation: rxIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes rxIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rxEmpty {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 14px;
+}
+
+/* טופס הוספת מרשם */
+.rxAddForm {
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: slideDown 0.25s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rxAddActions {
+  display: flex;
+  gap: 8px;
+}
+
 @media (max-width: 768px) {
   .header {
     padding: 16px;
@@ -249,8 +324,17 @@
   }
   .headActions {
     width: 100%;
+    flex-wrap: wrap;
   }
   .headActions button {
     flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .savedPill,
+  .rxRow,
+  .rxAddForm {
+    animation: none !important;
   }
 }

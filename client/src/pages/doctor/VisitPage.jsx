@@ -1,28 +1,55 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, Textarea, Field, Avatar, Dropzone } from "../../components/ui";
+import { Button, Input, Textarea, Field, Avatar, Dropzone, Modal } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { PATHS } from "../../lib/paths";
 import { visitContext } from "../../data/mock";
 import styles from "./VisitPage.module.css";
 
-// מרשמים שהרופא/ה הזין/ה בביקור (טיוטה). TODO: ניהול ב-state + POST /prescriptions.
-const DRAFT_PRESCRIPTIONS = [
+// מרשמים פותחים (טיוטה). נשמרים ב-state כדי לאפשר הוספה/מחיקה חיה.
+const INITIAL_PRESCRIPTIONS = [
   { id: 1, name: "Ramipril 5mg", dosage: "פעם ביום בבוקר · 30 יום" },
   { id: 2, name: "Aspirin 100mg", dosage: "פעם ביום אחרי ארוחה · קבוע" },
 ];
 
 /**
  * VisitPage (מסך 7) — מסך ביקור: תיעוד ע״י הרופא/ה.
- * נתונים מ-data/mock. השדות כאן תצוגתיים (defaultValue).
+ *
+ * ✦ שדרוגי חוויה: מרשמים אינטראקטיביים (הוספה/מחיקה), חיווי "טיוטה נשמרה",
+ *   ומודאל אישור לסגירת ביקור. שדות התיעוד נשלטים (controlled).
  *
  * TODO (שלב הלוגיקה):
- *  - לטעון את הביקור לפי :id (recordService/appointmentService).
- *  - "סגור ביקור" → POST /api/visits (יוצר רשומת visit) + שמירת מרשמים מקושרים.
- *  - "צירוף מסמך" → העלאת קובץ מול POST /api/documents (multipart).
+ *  - לטעון את הביקור לפי :id, "סגור ביקור" → POST /api/visits + מרשמים מקושרים.
+ *  - "צירוף מסמך" → העלאה מול POST /api/documents (multipart).
  */
 export function VisitPage() {
   const navigate = useNavigate();
   const { patient, vitals, allergies, recentVisits } = visitContext;
+
+  const [prescriptions, setPrescriptions] = useState(INITIAL_PRESCRIPTIONS);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState({ name: "", dosage: "" });
+  const [diagnosis, setDiagnosis] = useState("יתר לחץ דם ראשוני (I10) — מאוזן");
+  const [summary, setSummary] = useState(
+    "המטופלת מגיעה למעקב שגרתי. מדווחת על הרגשה טובה ללא תלונות. ערכי לחץ הדם תקינים תחת הטיפול הנוכחי. הומלץ להמשיך טיפול ולשמור על תזונה דלת מלח."
+  );
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
+
+  useEffect(() => {
+    if (!draftSaved) return;
+    const id = setTimeout(() => setDraftSaved(false), 2500);
+    return () => clearTimeout(id);
+  }, [draftSaved]);
+
+  const addPrescription = () => {
+    if (!draft.name.trim()) return;
+    setPrescriptions((list) => [...list, { id: Date.now(), name: draft.name.trim(), dosage: draft.dosage.trim() }]);
+    setDraft({ name: "", dosage: "" });
+    setAdding(false);
+  };
+
+  const removePrescription = (id) => setPrescriptions((list) => list.filter((p) => p.id !== id));
 
   return (
     <div className={styles.wrap}>
@@ -41,11 +68,16 @@ export function VisitPage() {
           </div>
         </div>
         <div className={styles.headActions}>
-          <Button variant="outline">שמור טיוטה</Button>
-          <Button
-            iconStart={<Icon name="check" size={15} stroke={2.6} />}
-            onClick={() => navigate(PATHS.doctorAgenda)}
-          >
+          {draftSaved ? (
+            <span className={styles.savedPill}>
+              <Icon name="check" size={14} stroke={3} />
+              טיוטה נשמרה
+            </span>
+          ) : null}
+          <Button variant="outline" onClick={() => setDraftSaved(true)}>
+            שמור טיוטה
+          </Button>
+          <Button iconStart={<Icon name="check" size={15} stroke={2.6} />} onClick={() => setConfirmClose(true)}>
             סגור ביקור
           </Button>
         </div>
@@ -92,26 +124,28 @@ export function VisitPage() {
           <div className={styles.card}>
             <h2 className={styles.sectionTitle}>תיעוד הביקור</h2>
             <Field label="אבחנה" htmlFor="diagnosis" className={styles.field}>
-              <Input id="diagnosis" defaultValue="יתר לחץ דם ראשוני (I10) — מאוזן" />
+              <Input id="diagnosis" value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)} />
             </Field>
             <Field label="סיכום ביקור" htmlFor="summary">
-              <Textarea
-                id="summary"
-                rows={4}
-                defaultValue="המטופלת מגיעה למעקב שגרתי. מדווחת על הרגשה טובה ללא תלונות. ערכי לחץ הדם תקינים תחת הטיפול הנוכחי. הומלץ להמשיך טיפול ולשמור על תזונה דלת מלח."
-              />
+              <Textarea id="summary" rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} />
             </Field>
           </div>
 
           <div className={styles.card}>
             <div className={styles.cardHead}>
               <h2 className={styles.sectionTitle}>מרשמים</h2>
-              <Button variant="secondary" size="sm" iconStart={<Icon name="plus" size={13} stroke={2.6} />}>
+              <Button
+                variant="secondary"
+                size="sm"
+                iconStart={<Icon name="plus" size={13} stroke={2.6} />}
+                onClick={() => setAdding((v) => !v)}
+              >
                 הוסף מרשם
               </Button>
             </div>
+
             <div className={styles.rxList}>
-              {DRAFT_PRESCRIPTIONS.map((p) => (
+              {prescriptions.map((p) => (
                 <div key={p.id} className={styles.rxRow}>
                   <span className={styles.rxIcon}>
                     <Icon name="pill" size={17} />
@@ -120,12 +154,44 @@ export function VisitPage() {
                     <div className={styles.rxName}>{p.name}</div>
                     <div className={styles.rxDosage}>{p.dosage}</div>
                   </div>
-                  <button className={styles.rxDelete} aria-label="מחיקת מרשם">
+                  <button
+                    className={styles.rxDelete}
+                    aria-label={`מחיקת ${p.name}`}
+                    onClick={() => removePrescription(p.id)}
+                  >
                     <Icon name="trash" size={15} />
                   </button>
                 </div>
               ))}
+              {prescriptions.length === 0 ? (
+                <div className={styles.rxEmpty}>אין מרשמים. הוסף/י מרשם חדש.</div>
+              ) : null}
             </div>
+
+            {adding ? (
+              <div className={styles.rxAddForm}>
+                <Input
+                  placeholder="שם התרופה ומינון (למשל Ramipril 5mg)"
+                  value={draft.name}
+                  onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                  autoFocus
+                />
+                <Input
+                  placeholder="הוראות נטילה (למשל פעם ביום · 30 יום)"
+                  value={draft.dosage}
+                  onChange={(e) => setDraft((d) => ({ ...d, dosage: e.target.value }))}
+                  onKeyDown={(e) => e.key === "Enter" && addPrescription()}
+                />
+                <div className={styles.rxAddActions}>
+                  <Button size="sm" onClick={addPrescription} disabled={!draft.name.trim()}>
+                    הוספה
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
+                    ביטול
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.card}>
@@ -134,6 +200,24 @@ export function VisitPage() {
           </div>
         </div>
       </div>
+
+      {/* מודאל אישור סגירת ביקור */}
+      <Modal
+        open={confirmClose}
+        onClose={() => setConfirmClose(false)}
+        title="סגירת ביקור"
+        footer={
+          <>
+            <Button onClick={() => navigate(PATHS.doctorAgenda)}>אישור וסגירה</Button>
+            <Button variant="outline" onClick={() => setConfirmClose(false)}>
+              חזרה לעריכה
+            </Button>
+          </>
+        }
+      >
+        סגירת הביקור תשמור את התיעוד ({prescriptions.length} מרשמים) ותסמן את התור כהושלם.
+        לא ניתן יהיה לערוך לאחר מכן.
+      </Modal>
     </div>
   );
 }
