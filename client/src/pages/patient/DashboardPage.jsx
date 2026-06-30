@@ -1,8 +1,10 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Topbar } from "../../components/layout";
 import { StatusBadge } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { PATHS } from "../../lib/paths";
+import { formatDayDateHe, formatTime } from "../../utils/format";
 import { currentPatient, nextAppointment, appointments } from "../../data/mock";
 import styles from "./DashboardPage.module.css";
 
@@ -13,31 +15,88 @@ const QUICK_ACTIONS = [
   { to: PATHS.record, icon: "upload", title: "מסמכים", desc: "העלאה וצפייה", tone: "gray" },
 ];
 
+/** ברכה לפי שעת היום. */
+function greetingFor(hour) {
+  if (hour < 12) return "בוקר טוב";
+  if (hour < 18) return "צהריים טובים";
+  return "ערב טוב";
+}
+
+/** מפרק הפרש זמן (ms) ליחידות. */
+function breakdown(ms) {
+  const clamp = Math.max(0, ms);
+  return {
+    days: Math.floor(clamp / 86400000),
+    hours: Math.floor((clamp / 3600000) % 24),
+    minutes: Math.floor((clamp / 60000) % 60),
+    seconds: Math.floor((clamp / 1000) % 60),
+  };
+}
+
+const pad = (n) => String(n).padStart(2, "0");
+
+/** ספירה-לאחור חיה — מתעדכנת כל שנייה. */
+function Countdown({ target }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const t = breakdown(target.getTime() - now);
+  const cells = [
+    { v: t.days, label: "ימים" },
+    { v: pad(t.hours), label: "שעות" },
+    { v: pad(t.minutes), label: "דקות" },
+    { v: pad(t.seconds), label: "שניות" },
+  ];
+
+  return (
+    <div className={styles.countdown} role="timer" aria-label="זמן עד התור הקרוב">
+      {cells.map((c, i) => (
+        <div className={styles.cdCell} key={i}>
+          <span className={styles.cdValue}>{c.v}</span>
+          <span className={styles.cdLabel}>{c.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /**
  * DashboardPage (מסך 2) — דשבורד מטופל.
- * נחיתה אחרי כניסה: התור הקרוב, פעולות מהירות, והתורים הקרובים.
- * נתונים מ-data/mock. TODO: למשוך מ-services (appointmentService.getUpcoming).
+ * נחיתה אחרי כניסה: התור הקרוב (עם ספירה-לאחור חיה), פעולות מהירות, ותורים קרובים.
+ *
+ * ✦ שדרוגי חוויה: ברכה לפי שעת היום, ספירה-לאחור מתקתקת בזמן אמת,
+ *   וכניסה מדורגת. התאריך/שעה נגזרים מ-utils/format כדי להדגים את שכבת העזרים.
+ *
+ * TODO: למשוך מ-services (appointmentService.getUpcoming); כרגע נתוני mock.
  */
 export function DashboardPage() {
   const upcoming = appointments.filter((a) => a.status === "scheduled");
 
+  // יעד התור הקרוב — מחושב יחסית ל"עכשיו" כדי שהספירה תהיה חיה ועקבית בכל הרצה.
+  const target = useMemo(() => new Date(Date.now() + 3 * 86400000 + 4 * 3600000 + 12 * 60000), []);
+  const now = new Date();
+  const greeting = greetingFor(now.getHours());
+
   return (
     <>
       <Topbar
-        title={`שלום, ${currentPatient.fullName.split(" ")[0]} 👋`}
-        subtitle="יום ראשון, 9 ביולי 2026"
+        title={`${greeting}, ${currentPatient.fullName.split(" ")[0]} 👋`}
+        subtitle={formatDayDateHe(now)}
         search
         bell
       />
 
       <div className={styles.body}>
         {/* כרטיס התור הקרוב */}
-        <div className={styles.hero}>
+        <div className={`${styles.hero} ${styles.rise}`} style={{ "--i": 0 }}>
           <div className={styles.heroBlob} />
           <div className={styles.heroMain}>
             <div className={styles.heroBadge}>
               <span className={styles.heroBadgeDot} />
-              התור הקרוב · {nextAppointment.countdown}
+              התור הקרוב
             </div>
             <div className={styles.heroTitle}>
               {nextAppointment.doctor} · {nextAppointment.department}
@@ -45,17 +104,18 @@ export function DashboardPage() {
             <div className={styles.heroMeta}>
               <span>
                 <Icon name="calendar" size={16} />
-                {nextAppointment.dateLabel}
+                {formatDayDateHe(target)}
               </span>
               <span>
                 <Icon name="clock" size={16} />
-                {nextAppointment.time}
+                {formatTime(target.toTimeString())}
               </span>
               <span>
                 <Icon name="mapPin" size={16} />
                 חדר {nextAppointment.room}
               </span>
             </div>
+            <Countdown target={target} />
           </div>
           <div className={styles.heroActions}>
             <button className={styles.heroBtnSolid}>צפייה בפרטים</button>
@@ -64,7 +124,7 @@ export function DashboardPage() {
         </div>
 
         {/* פעולות מהירות */}
-        <section>
+        <section className={styles.rise} style={{ "--i": 1 }}>
           <h2 className={styles.sectionTitle}>פעולות מהירות</h2>
           <div className={styles.quickGrid}>
             {QUICK_ACTIONS.map((a, i) => (
@@ -86,7 +146,7 @@ export function DashboardPage() {
         </section>
 
         {/* התורים הקרובים */}
-        <section>
+        <section className={styles.rise} style={{ "--i": 2 }}>
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>התורים הקרובים</h2>
             <Link to={PATHS.appointments} className={styles.showAll}>

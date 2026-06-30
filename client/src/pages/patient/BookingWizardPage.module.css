@@ -17,14 +17,56 @@
   margin: 0 auto 32px;
 }
 
-.step {
-  animation: fade 0.2s ease;
+/* אזור התצוגה — מחביא את ה"החלקה" של מעבר שלבים */
+.viewport {
+  overflow: hidden;
 }
 
-@keyframes fade {
+.step {
+  will-change: transform, opacity;
+}
+
+/* מעבר מודע-כיוון: קדימה מחליק מהצד ההתחלתי (ב-RTL = ימין), אחורה הפוך */
+.enterFwd {
+  animation: slideFwd 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.enterBack {
+  animation: slideBack 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideFwd {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes slideBack {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* כניסה מדורגת של כרטיסים (מחלקות / רופאים / חלונות שעה) */
+.pop {
+  animation: pop 0.34s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 35ms + 80ms);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -482,5 +524,95 @@
   }
   .slotGrid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------- מסך הצלחה ---------- */
+.successCard {
+  max-width: 520px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 46px 40px;
+  animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.successIcon {
+  width: 86px;
+  height: 86px;
+  margin-bottom: 18px;
+  fill: none;
+}
+
+.successCircle {
+  stroke: var(--green);
+  stroke-width: 2.5;
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: drawCircle 0.5s ease forwards;
+}
+
+.successCheck {
+  stroke: var(--green);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: drawCheck 0.35s 0.45s ease forwards;
+}
+
+@keyframes drawCircle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes drawCheck {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.successTitle {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  margin-bottom: 8px;
+}
+
+.successSub {
+  font-size: 14.5px;
+  color: var(--ink2);
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.successAlert {
+  width: 100%;
+  margin-bottom: 22px;
+  text-align: right;
+}
+
+.successActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---------- העדפת תנועה מופחתת ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .enterFwd,
+  .enterBack,
+  .pop,
+  .successCard {
+    animation: none !important;
+  }
+  .successCircle,
+  .successCheck {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
   }
 }
