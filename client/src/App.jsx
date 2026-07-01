@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import { AppShell } from "./components/layout";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
@@ -8,6 +8,7 @@ import { currentPatient, currentDoctor, currentAdmin } from "./data/mock";
 
 // אימות
 import LoginPage from "./pages/auth/LoginPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 // מטופל
 import DashboardPage from "./pages/patient/DashboardPage";
@@ -76,8 +77,8 @@ export default function App() {
         </Route>
       </Route>
 
-      {/* ברירת מחדל — לכל נתיב לא מוכר */}
-      <Route path="*" element={<Navigate to={PATHS.login} replace />} />
+      {/* ברירת מחדל — מסך 404 לכל נתיב לא מוכר */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

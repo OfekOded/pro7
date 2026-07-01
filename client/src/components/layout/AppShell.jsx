@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
-import { ROLES } from "../../lib/roles";
 import styles from "./AppShell.module.css";
 
 /**
@@ -21,7 +20,8 @@ export function AppShell({ role, user }) {
       <main className={styles.content}>
         <Outlet />
       </main>
-      {role === ROLES.patient ? <MobileBottomNav /> : null}
+      {/* בר ניווט תחתון במובייל — לכל התפקידים (הסייד-בר מוסתר במובייל) */}
+      <MobileBottomNav role={role} />
     </div>
   );
 }

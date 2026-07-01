@@ -25,13 +25,18 @@
   flex: 1;
 }
 
-.item.active {
-  color: var(--brand-ink);
-}
-
 .label {
   font-size: 10px;
   font-weight: 600;
+}
+
+/* פריט פעיל — לפי ערכת התפקיד */
+.theme-brand .item.active {
+  color: var(--brand-ink);
+}
+
+.theme-green .item.active {
+  color: var(--green-ink);
 }
 
 .item.active .label {

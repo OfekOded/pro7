@@ -55,10 +55,30 @@ export const NAV_BY_ROLE = {
   ],
 };
 
-/** בר ניווט תחתון במובייל — מטופל בלבד (4 פריטים, לפי ההנדאוף). */
+/** בר ניווט תחתון במובייל — מטופל (4 פריטים, לפי ההנדאוף). */
 export const MOBILE_NAV_PATIENT = [
   { to: PATHS.patientDashboard, label: "דשבורד", icon: "grid", end: true },
   { to: PATHS.appointments, label: "תורים", icon: "calendarPlus" },
   { to: PATHS.record, label: "תיק", icon: "fileText" },
   { to: PATHS.patientProfile, label: "פרופיל", icon: "user" },
 ];
+
+/**
+ * בר ניווט תחתון במובייל לכל תפקיד (4 פריטים, תוויות קצרות).
+ * מבטיח שגם רופא/ה ומנהל/ת יכולים לנווט במובייל (הסייד-בר מוסתר שם).
+ */
+export const MOBILE_NAV_BY_ROLE = {
+  patient: MOBILE_NAV_PATIENT,
+  doctor: [
+    { to: PATHS.doctorAgenda, label: "אג׳נדה", icon: "calendarClock", end: true },
+    { to: PATHS.doctorPatients, label: "מטופלים", icon: "users" },
+    { to: PATHS.doctorAvailability, label: "זמינות", icon: "calendarDays" },
+    { to: PATHS.doctorProfile, label: "פרופיל", icon: "user" },
+  ],
+  admin: [
+    { to: PATHS.adminDashboard, label: "דשבורד", icon: "chart", end: true },
+    { to: PATHS.adminUsers, label: "משתמשים", icon: "users" },
+    { to: PATHS.adminDoctors, label: "רופאים", icon: "stethoscope" },
+    { to: PATHS.adminDepartments, label: "מחלקות", icon: "building" },
+  ],
+};
