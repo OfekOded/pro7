@@ -1,0 +1,220 @@
+.body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 680px;
+}
+
+.summary {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green-ink);
+  background: var(--green-soft);
+  padding: 8px 14px;
+  border-radius: 10px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* משך תור */
+.slotChips {
+  display: flex;
+  gap: 10px;
+}
+
+.slotChip {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink2);
+  background: #fff;
+  border: 1.5px solid var(--line);
+  padding: 9px 20px;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.slotChip:hover {
+  border-color: var(--green);
+}
+
+.slotActive {
+  color: var(--green-ink);
+  background: var(--green-soft);
+  border-color: var(--green);
+}
+
+/* ימים */
+.days {
+  display: flex;
+  flex-direction: column;
+}
+
+.dayRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line2);
+}
+
+.dayRow:last-child {
+  border-bottom: none;
+}
+
+.inactive .dayName {
+  color: var(--muted);
+}
+
+.dayName {
+  font-size: 14px;
+  font-weight: 600;
+  width: 70px;
+}
+
+.times {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-inline-start: auto;
+}
+
+.timeInput {
+  font-family: inherit;
+  font-size: 13.5px;
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  padding: 7px 10px;
+  outline: none;
+  direction: ltr;
+}
+
+.timeInput:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-soft);
+}
+
+.dash {
+  color: var(--muted);
+}
+
+.off {
+  margin-inline-start: auto;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* מתג */
+.switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--line);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.switch.on {
+  background: var(--green);
+}
+
+.knob {
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.switch.on .knob {
+  transform: translateX(-20px);
+}
+
+/* שמירה */
+.saveBar {
+  display: flex;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: -3px;
+  margin-inline-end: 8px;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* טוסט */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  z-index: 120;
+  animation: toastIn 0.3s ease;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (max-width: 768px) {
+  .body {
+    padding: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner,
+  .toast {
+    animation: none !important;
+  }
+}

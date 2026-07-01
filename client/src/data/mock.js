@@ -337,3 +337,38 @@ export const adminStats = {
     { name: "ד״ר שירה כהן", value: 51 },
   ],
 };
+
+/* ----------------------- ניהול (מנהל/ת) ----------------------- */
+
+/** ספריית משתמשים — מסך ניהול המשתמשים. status: active | disabled. */
+export const directoryUsers = [
+  { id: 1, name: "ישראל ישראלי", initial: "י", role: "patient", email: "israel@clinic.test", phone: "050-1234567", status: "active" },
+  { id: 2, name: "דנה אברהם", initial: "ד", role: "patient", email: "dana@clinic.test", phone: "052-2223344", status: "active" },
+  { id: 3, name: "יוסי כהן", initial: "י", role: "patient", email: "yossi@clinic.test", phone: "054-9876543", status: "disabled" },
+  { id: 11, name: "ד״ר רונית לוי", initial: "ר", role: "doctor", email: "levi@clinic.test", phone: "050-7654321", status: "active" },
+  { id: 13, name: "ד״ר משה שרון", initial: "מ", role: "doctor", email: "sharon@clinic.test", phone: "050-1112222", status: "active" },
+  { id: 14, name: "ד״ר אורי גל", initial: "א", role: "doctor", email: "gal@clinic.test", phone: "053-4445566", status: "active" },
+  { id: 20, name: "מירי פקידה", initial: "מ", role: "receptionist", email: "desk@clinic.test", phone: "03-1112222", status: "active" },
+  { id: 99, name: "מאיה אדמין", initial: "מ", role: "admin", email: "admin@clinic.test", phone: "03-0000000", status: "active" },
+];
+
+/** המטופלים של הרופא/ה המחובר/ת — מסך "המטופלים שלי". */
+export const doctorPatients = [
+  { id: 2, name: "דנה אברהם", initial: "ד", age: 41, condition: "יתר לחץ דם", lastVisit: "28 ביוני 2026", next: "12 ביולי" },
+  { id: 3, name: "יוסי כהן", initial: "י", age: 57, condition: "מעקב כולסטרול", lastVisit: "14 במאי 2026", next: "—" },
+  { id: 4, name: "רותם בר", initial: "ר", age: 34, condition: "בדיקה תקופתית", lastVisit: "3 במרץ 2026", next: "20 ביולי" },
+  { id: 5, name: "מיכל לוי", initial: "מ", age: 62, condition: "אי-ספיקת לב קלה", lastVisit: "2 ביולי 2026", next: "9 ביולי" },
+  { id: 6, name: "אבי נחום", initial: "א", age: 48, condition: "הפרעת קצב", lastVisit: "20 ביוני 2026", next: "—" },
+  { id: 7, name: "שרה דוד", initial: "ש", age: 39, condition: "מעקב תרופתי", lastVisit: "10 ביוני 2026", next: "15 ביולי" },
+];
+
+/** זמינות שבועית ברירת-מחדל — מסך "יומן זמינות". weekday 0=ראשון. */
+export const weeklyAvailability = [
+  { weekday: 0, label: "ראשון", active: true, start: "08:00", end: "14:00" },
+  { weekday: 1, label: "שני", active: true, start: "08:00", end: "16:00" },
+  { weekday: 2, label: "שלישי", active: true, start: "09:00", end: "15:00" },
+  { weekday: 3, label: "רביעי", active: true, start: "08:00", end: "14:00" },
+  { weekday: 4, label: "חמישי", active: true, start: "08:00", end: "13:00" },
+  { weekday: 5, label: "שישי", active: false, start: "08:00", end: "12:00" },
+  { weekday: 6, label: "שבת", active: false, start: "00:00", end: "00:00" },
+];
