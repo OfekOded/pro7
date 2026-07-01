@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Topbar } from "../../components/layout";
 import { StatusBadge, Avatar } from "../../components/ui";
+import { Icon } from "../../components/icons";
 import { visitPath } from "../../lib/paths";
 import { doctorAgenda } from "../../data/mock";
 import styles from "./AgendaPage.module.css";
@@ -12,17 +14,78 @@ const VALUE_COLOR = {
   accent: "var(--accent-ink)",
 };
 
+const prefersReduced = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+/** מספר שמטפס מ-0 ליעד; fallback ב-setTimeout מבטיח ערך סופי גם אם rAF מווסת. */
+function useCountUp(target, duration = 800) {
+  const [val, setVal] = useState(prefersReduced() ? target : 0);
+  const ref = useRef();
+  useEffect(() => {
+    if (prefersReduced()) {
+      setVal(target);
+      return;
+    }
+    let start;
+    const tick = (ts) => {
+      if (start == null) start = ts;
+      const p = Math.min(1, (ts - start) / duration);
+      setVal(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) ref.current = requestAnimationFrame(tick);
+    };
+    ref.current = requestAnimationFrame(tick);
+    const safety = setTimeout(() => setVal(target), duration + 250);
+    return () => {
+      cancelAnimationFrame(ref.current);
+      clearTimeout(safety);
+    };
+  }, [target, duration]);
+  return Math.round(val);
+}
+
+function StatNum({ value }) {
+  return <>{useCountUp(value)}</>;
+}
+
+/** שעון חי — מתעדכן כל שנייה. */
+function LiveClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  return (
+    <span className={styles.clock} aria-label="השעה הנוכחית">
+      <Icon name="clock" size={15} />
+      <span className={styles.clockTime}>
+        {hh}:{mm}:{ss}
+      </span>
+    </span>
+  );
+}
+
 /**
  * AgendaPage (מסך 6) — דשבורד רופא/ה: אג׳נדת היום.
- * נתונים מ-data/mock. TODO: doctorService.getAgenda(date) — סטטיסטיקות,
- * המטופל הבא, וציר התורים של היום.
+ *
+ * ✦ שדרוגי חוויה: מספרים שמטפסים בכרטיסי הסטטיסטיקה, שעון חי בבר העליון,
+ *   פס התקדמות יומי (הושלמו/סה״כ), כניסה מדורגת לציר הזמן, ושורת "עכשיו" פועמת.
+ *
+ * נתונים מ-mock. TODO: doctorService.getAgenda(date).
  */
 export function AgendaPage() {
   const { greeting, dateLabel, stats, nextPatient, timeline } = doctorAgenda;
+  // ההתקדמות נגזרת מכרטיסי הסטטיסטיקה כדי להישאר עקבית עם המספרים המוצגים.
+  const total = stats.find((s) => s.id === "today")?.value ?? timeline.length;
+  const done = stats.find((s) => s.id === "done")?.value ?? 0;
+  const progress = Math.round((done / total) * 100);
 
   return (
     <>
-      <Topbar title={`${greeting} ☀️`} subtitle={`${dateLabel} · 8 תורים היום`} bell />
+      <Topbar title={`${greeting} ☀️`} subtitle={`${dateLabel} · 8 תורים היום`} actions={<LiveClock />} bell />
 
       <div className={styles.body}>
         {/* סטטיסטיקות */}
@@ -34,10 +97,23 @@ export function AgendaPage() {
                 className={styles.statValue}
                 style={{ color: s.id === "today" ? "var(--ink)" : VALUE_COLOR[s.tone] }}
               >
-                {s.value}
+                <StatNum value={s.value} />
               </div>
             </div>
           ))}
+        </div>
+
+        {/* התקדמות היום */}
+        <div className={styles.progressCard}>
+          <div className={styles.progressHead}>
+            <span className={styles.progressTitle}>התקדמות היום</span>
+            <span className={styles.progressCount}>
+              {done} מתוך {total} הושלמו
+            </span>
+          </div>
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
+          </div>
         </div>
 
         {/* המטופל הבא */}
@@ -62,7 +138,8 @@ export function AgendaPage() {
             {timeline.map((row, i) => (
               <div
                 key={i}
-                className={`${styles.row} ${row.state === "now" ? styles.now : ""} ${
+                style={{ "--i": i }}
+                className={`${styles.row} ${styles.rowIn} ${row.state === "now" ? styles.now : ""} ${
                   row.state === "done" ? styles.done : ""
                 }`}
               >

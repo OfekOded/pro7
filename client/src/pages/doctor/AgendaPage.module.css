@@ -159,6 +159,109 @@
   white-space: nowrap;
 }
 
+/* ---------- שעון חי ---------- */
+.clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink2);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 9px 14px;
+  border-radius: 10px;
+}
+
+.clockTime {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  direction: ltr;
+}
+
+/* ---------- פס התקדמות יומי ---------- */
+.progressCard {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.progressHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.progressTitle {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.progressCount {
+  font-size: 12.5px;
+  color: var(--ink2);
+  font-weight: 600;
+}
+
+.progressTrack {
+  height: 10px;
+  background: var(--bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--gradient-green);
+  border-radius: 999px;
+  transform-origin: right;
+  animation: growX 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes growX {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ---------- כניסה מדורגת לציר הזמן ---------- */
+.rowIn {
+  animation: rowSlide 0.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+@keyframes rowSlide {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* שורת "עכשיו" — כניסה + פעימת רקע עדינה */
+.now {
+  animation: rowSlide 0.3s cubic-bezier(0.22, 1, 0.36, 1) backwards,
+    nowPulse 2.4s ease-in-out 0.4s infinite;
+}
+
+@keyframes nowPulse {
+  0%,
+  100% {
+    background: var(--green-soft);
+  }
+  50% {
+    background: #d9f0e6;
+  }
+}
+
 /* ---------- מובייל ---------- */
 @media (max-width: 768px) {
   .body {
@@ -181,5 +284,13 @@
   }
   .npBtn {
     text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowIn,
+  .now,
+  .progressFill {
+    animation: none !important;
   }
 }
