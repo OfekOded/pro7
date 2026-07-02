@@ -1,11 +1,4 @@
-/**
- * utils/password.js — גיבוב והשוואת סיסמאות.
- * ⚠️ STUB. דוגמה (bcryptjs):
- *   import bcrypt from "bcryptjs";
- *   export const hash = (plain) => bcrypt.hash(plain, 10);
- *   export const compare = (plain, hashStr) => bcrypt.compare(plain, hashStr);
- *
- * אין לשמור סיסמה גולמית בשום מקום — רק את ה-hash בטבלת users.
- */
+import bcrypt from "bcryptjs";
 
-// TODO: לממש hash/compare.
+export const hash = async (plain) => await bcrypt.hash(plain, 10);
+export const compare = async (plain, hashStr) => await bcrypt.compare(plain, hashStr);

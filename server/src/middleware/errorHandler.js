@@ -1,11 +1,14 @@
-/**
- * middleware/errorHandler.js — טיפול שגיאות מרכזי (4 ארגומנטים — תמיד אחרון).
- * ⚠️ STUB. דוגמה:
- *   export function errorHandler(err, req, res, next) {  // eslint-disable-line
- *     const status = err.status || 500;
- *     if (status === 500) console.error(err);
- *     res.status(status).json({ message: err.message || "שגיאת שרת", details: err.details ?? null });
- *   }
- */
+export function errorHandler(err, req, res, next) {
+  const status = err.status || 500;
+  
+  if (status === 500) {
+    console.error("💥 Server Error:", err);
+  }
 
-// TODO: לממש errorHandler.
+  res.status(status).json({
+    message: err.message || "שגיאת שרת פנימית",
+    details: err.details ?? null,
+  });
+}
+
+export default errorHandler;
