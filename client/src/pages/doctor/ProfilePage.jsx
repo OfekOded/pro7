@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Topbar } from "../../components/layout";
 import { Button, Field, Input, Textarea, Avatar } from "../../components/ui";
 import { Icon } from "../../components/icons";
+import { doctorService } from "../../services/doctorService";
 import { currentDoctor } from "../../data/mock";
 import styles from "./ProfilePage.module.css";
 
@@ -31,12 +32,17 @@ export function DoctorProfilePage() {
 
   const set = (name) => (e) => setValues((v) => ({ ...v, [name]: e.target.value }));
 
-  const save = () => {
+  /** שמירה מול ה-API — PUT /doctors/me (doctorService.updateMe). */
+  const save = async () => {
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await doctorService.updateMe(values);
       setToast("הפרופיל נשמר בהצלחה");
-    }, 800);
+    } catch (err) {
+      setToast(err.message || "השמירה נכשלה — נסו שוב");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

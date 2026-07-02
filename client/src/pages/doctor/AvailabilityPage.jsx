@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Topbar } from "../../components/layout";
 import { Button } from "../../components/ui";
 import { Icon } from "../../components/icons";
+import { doctorService } from "../../services/doctorService";
 import { weeklyAvailability } from "../../data/mock";
 import styles from "./AvailabilityPage.module.css";
 
@@ -33,12 +34,17 @@ export function DoctorAvailabilityPage() {
   const setTime = (wd, field, value) =>
     setSchedule((s) => s.map((d) => (d.weekday === wd ? { ...d, [field]: value } : d)));
 
-  const save = () => {
+  /** שמירה מול ה-API — PUT /doctors/me/availability. */
+  const save = async () => {
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await doctorService.saveAvailability({ days: schedule, slotMinutes: slot });
       setToast("יומן הזמינות נשמר");
-    }, 800);
+    } catch (err) {
+      setToast(err.message || "השמירה נכשלה — נסו שוב");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

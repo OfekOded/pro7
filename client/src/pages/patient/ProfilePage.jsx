@@ -3,6 +3,7 @@ import { Topbar } from "../../components/layout";
 import { Button, Field, Input, Avatar } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { ROLE_LABEL } from "../../lib/roles";
+import { authService } from "../../services/authService";
 import { currentPatient } from "../../data/mock";
 import styles from "./ProfilePage.module.css";
 
@@ -37,12 +38,17 @@ export function PatientProfilePage() {
   const set = (name) => (e) => setValues((v) => ({ ...v, [name]: e.target.value }));
   const togglePref = (key) => setPrefs((p) => ({ ...p, [key]: !p[key] }));
 
-  const save = () => {
+  /** שמירה מול ה-API — PUT /users/me (authService.updateMe). */
+  const save = async () => {
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await authService.updateMe({ ...values, preferences: prefs });
       setToast("הפרטים נשמרו בהצלחה");
-    }, 800);
+    } catch (err) {
+      setToast(err.message || "השמירה נכשלה — נסו שוב");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

@@ -95,6 +95,24 @@
   color: var(--muted);
 }
 
+.logout {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logout:hover {
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+
 /* מוסתר במובייל */
 @media (max-width: 768px) {
   .sidebar {

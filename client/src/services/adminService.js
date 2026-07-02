@@ -14,7 +14,10 @@ export const adminService = {
     return api.get(`/users${qs ? `?${qs}` : ""}`);
   },
 
-  // TODO: CRUD משתמשים/רופאים/מחלקות, ניהול הרשאות.
+  // PATCH /api/users/:id — עדכון משתמש (למשל השבתה/הפעלה)
+  setUserStatus: (id, status) => api.patch(`/users/${id}`, { status }),
+
+  // TODO: CRUD מלא לרופאים/מחלקות.
 };
 
 export default adminService;

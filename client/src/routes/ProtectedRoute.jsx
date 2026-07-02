@@ -1,23 +1,36 @@
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { PageLoader } from "../components/ui";
+import { PATHS } from "../lib/paths";
+import { homeFor } from "../lib/roles";
 
 /**
  * ProtectedRoute — שמירת נתיב לפי אימות והרשאת-תפקיד.
  *
- * ⚠️ STUB: בשלב זה מעביר את כל הנתיבים (אין עדיין אימות) כדי לאפשר
- *    התרשמות מהמערכת. יש לממש את ההגנה האמיתית בשלב הלוגיקה.
+ *  - בזמן שחזור הסשן (isLoading) — מציגים PageLoader ולא מסך ריק/הבהוב.
+ *  - לא מחובר → הפניה ל-/login עם שמירת היעד המקורי (state.from),
+ *    כדי שאחרי התחברות נחזור בדיוק לאן שהמשתמש רצה.
+ *  - מחובר אך בתפקיד לא-מורשה → הפניה לדף הבית של התפקיד שלו.
  *
- * TODO (שלב הלוגיקה):
- *   const { user, isLoading } = useAuth();           // context/AuthContext
- *   if (isLoading) return <Spinner/>;
- *   if (!user) return <Navigate to={PATHS.login} replace />;          // לא מחובר
- *   if (allow && !allow.includes(user.role))                          // תפקיד לא מתאים
- *     return <Navigate to={homeFor(user.role)} replace />;
- *   return <Outlet/>;
+ * ⚠️ אבטחה: הבדיקה כאן היא שכבת UX בלבד. האכיפה האמיתית של הרשאות חייבת
+ *    להתבצע בשרת (middleware auth + requireRole) על כל endpoint.
  *
  * @param {string[]} [allow] - התפקידים המורשים לנתיב (למשל [ROLES.doctor]).
  */
-// eslint-disable-next-line no-unused-vars
 export function ProtectedRoute({ allow }) {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) return <PageLoader label="מאמת התחברות…" />;
+
+  if (!user) {
+    return <Navigate to={PATHS.login} replace state={{ from: location }} />;
+  }
+
+  if (allow && !allow.includes(user.role)) {
+    return <Navigate to={homeFor(user.role)} replace />;
+  }
+
   return <Outlet />;
 }
 

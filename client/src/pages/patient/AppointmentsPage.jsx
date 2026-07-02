@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Topbar } from "../../components/layout";
-import { Button, Chip, StatusBadge, Modal, EmptyState } from "../../components/ui";
+import { Button, Chip, StatusBadge, Modal, EmptyState, PageLoader } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { PATHS } from "../../lib/paths";
 import { STATUS_ORDER, statusMeta } from "../../lib/statuses";
-import { appointments as seedAppointments } from "../../data/mock";
+import { useFetch } from "../../hooks/useFetch";
+import { appointmentService } from "../../services/appointmentService";
 import styles from "./AppointmentsPage.module.css";
 
 /**
@@ -14,16 +15,20 @@ import styles from "./AppointmentsPage.module.css";
  * ✦ שדרוגי חוויה: סינון מונפש (כניסה מדורגת), מודאל אישור לביטול תור,
  *   עדכון חי של המונים, מצב ריק, וטוסט אישור.
  *
- * הנתונים מ-mock (עותק מקומי כדי שביטול יעדכן את התצוגה).
- * TODO: appointmentService.list({status}) + appointmentService.cancel(id);
- *       "קבע מחדש" → זרימת הזימון עם פרטי התור הקודם.
+ * הנתונים נשלפים דרך appointmentService (GET /appointments); ביטול מתבצע
+ * מול ה-API (PATCH) — כישלון מוצג בטוסט והרשימה לא משתנה.
  */
 export function AppointmentsPage() {
   const navigate = useNavigate();
-  const [items, setItems] = useState(seedAppointments);
+  const { data, isLoading } = useFetch(() => appointmentService.list(), []);
+  const [items, setItems] = useState([]);
   const [filter, setFilter] = useState("all");
   const [cancelTarget, setCancelTarget] = useState(null);
   const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (data) setItems(data);
+  }, [data]);
 
   const counts = useMemo(() => {
     const c = { all: items.length };
@@ -39,12 +44,18 @@ export function AppointmentsPage() {
     return () => clearTimeout(id);
   }, [toast]);
 
-  const confirmCancel = () => {
-    setItems((list) =>
-      list.map((a) => (a.id === cancelTarget.id ? { ...a, status: "cancelled" } : a))
-    );
-    setToast(`התור עם ${cancelTarget.doctor} בוטל`);
+  const confirmCancel = async () => {
+    const target = cancelTarget;
     setCancelTarget(null);
+    try {
+      await appointmentService.cancel(target.id);
+      setItems((list) =>
+        list.map((a) => (a.id === target.id ? { ...a, status: "cancelled" } : a))
+      );
+      setToast(`התור עם ${target.doctor} בוטל`);
+    } catch (err) {
+      setToast(err.message || "הביטול נכשל — נסו שוב");
+    }
   };
 
   const rowActions = (a) => {
@@ -108,7 +119,9 @@ export function AppointmentsPage() {
         </div>
 
         {/* רשימה (מונפשת מחדש בכל שינוי פילטר) */}
-        {visible.length === 0 ? (
+        {isLoading ? (
+          <PageLoader label="טוען תורים…" />
+        ) : visible.length === 0 ? (
           <EmptyState
             icon="calendar"
             title="אין תורים בקטגוריה הזו"

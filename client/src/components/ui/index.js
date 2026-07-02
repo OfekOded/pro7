@@ -16,3 +16,4 @@ export { Tabs } from "./Tabs";
 export { StatCard } from "./StatCard";
 export { Modal } from "./Modal";
 export { EmptyState } from "./EmptyState";
+export { PageLoader } from "./PageLoader";

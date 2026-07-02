@@ -1,19 +1,21 @@
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { useAuth } from "../../hooks/useAuth";
 import styles from "./AppShell.module.css";
 
 /**
  * AppShell — מעטפת היישום לאזורים המאומתים: סייד-בר (דסקטופ) + אזור תוכן
- * עם <Outlet/>, ובמובייל בר-ניווט תחתון למטופל.
+ * עם <Outlet/>, ובמובייל בר-ניווט תחתון מודע-תפקיד.
  *
- * נצרך ב-App.jsx כ-layout route עוטף, עם role/user מתאימים.
- * ⚠️ user מגיע כרגע מ-mock; כשיהיה AuthContext יש למשוך אותו משם.
+ * המשתמש מגיע מ-AuthContext (useAuth) — לא מ-mock. הנתיב תמיד עטוף
+ * ב-ProtectedRoute, כך שכאן user מובטח.
  *
- * @param {'patient'|'doctor'|'admin'} role
- * @param {object} user
+ * @param {'patient'|'doctor'|'admin'} role - תפקיד קבוצת הנתיבים (קובע ניווט/ערכה).
  */
-export function AppShell({ role, user }) {
+export function AppShell({ role }) {
+  const { user } = useAuth();
+
   return (
     <div className={styles.shell}>
       <Sidebar role={role} user={user} />

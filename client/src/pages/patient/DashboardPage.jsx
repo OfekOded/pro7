@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Topbar } from "../../components/layout";
-import { StatusBadge } from "../../components/ui";
+import { StatusBadge, PageLoader } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { PATHS } from "../../lib/paths";
 import { formatDayDateHe, formatTime } from "../../utils/format";
-import { currentPatient, nextAppointment, appointments } from "../../data/mock";
+import { useAuth } from "../../hooks/useAuth";
+import { useFetch } from "../../hooks/useFetch";
+import { appointmentService } from "../../services/appointmentService";
+import { nextAppointment } from "../../data/mock";
 import styles from "./DashboardPage.module.css";
 
 const QUICK_ACTIONS = [
@@ -70,20 +73,23 @@ function Countdown({ target }) {
  * ✦ שדרוגי חוויה: ברכה לפי שעת היום, ספירה-לאחור מתקתקת בזמן אמת,
  *   וכניסה מדורגת. התאריך/שעה נגזרים מ-utils/format כדי להדגים את שכבת העזרים.
  *
- * TODO: למשוך מ-services (appointmentService.getUpcoming); כרגע נתוני mock.
+ * הנתונים נשלפים דרך appointmentService (GET /appointments?status=scheduled);
+ * המשתמש מגיע מ-AuthContext.
  */
 export function DashboardPage() {
-  const upcoming = appointments.filter((a) => a.status === "scheduled");
+  const { user } = useAuth();
+  const { data: upcoming, isLoading } = useFetch(() => appointmentService.upcoming(), []);
 
   // יעד התור הקרוב — מחושב יחסית ל"עכשיו" כדי שהספירה תהיה חיה ועקבית בכל הרצה.
   const target = useMemo(() => new Date(Date.now() + 3 * 86400000 + 4 * 3600000 + 12 * 60000), []);
   const now = new Date();
   const greeting = greetingFor(now.getHours());
+  const firstName = user?.fullName?.split(" ")[0] ?? "";
 
   return (
     <>
       <Topbar
-        title={`${greeting}, ${currentPatient.fullName.split(" ")[0]} 👋`}
+        title={`${greeting}, ${firstName} 👋`}
         subtitle={formatDayDateHe(now)}
         search
         bell
@@ -153,8 +159,11 @@ export function DashboardPage() {
               הצג הכל
             </Link>
           </div>
+          {isLoading ? (
+            <PageLoader />
+          ) : (
           <div className={styles.list}>
-            {upcoming.map((a) => (
+            {(upcoming ?? []).map((a) => (
               <div key={a.id} className={styles.listRow}>
                 <span className={styles.dateBox}>
                   <span className={styles.dateDay}>{a.day}</span>
@@ -170,6 +179,7 @@ export function DashboardPage() {
               </div>
             ))}
           </div>
+          )}
         </section>
       </div>
     </>

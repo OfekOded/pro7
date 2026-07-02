@@ -1,22 +1,22 @@
 /**
  * apiClient — שכבת תקשורת גנרית מול ה-REST API (דרישת "Fetch גנרי" באפיון).
  *
- * מספק עטיפה אחידה ל-fetch: base URL מ-env, צירוף טוקן JWT, סריאליזציה של JSON,
- * וטיפול שגיאות. כל ה-services משתמשים אך ורק בו (לא קוראים ל-fetch ישירות).
+ * מצבי עבודה (VITE_API_MODE):
+ *  - "mock" (ברירת מחדל): הבקשות מנותבות ל-mockServer בתוך הדפדפן,
+ *    שמממש את חוזה docs/API.md מעל נתוני הדמו. כל שכבת הלקוח רצה בקוד אמיתי.
+ *  - "server": fetch אמיתי אל VITE_API_URL — בלי לשנות אף דף.
  *
- * רובו ממומש; מה שנותר מסומן ב-TODO (מקור הטוקן, רענון טוקן, ביטול בקשות).
+ * אבטחה:
+ *  - הטוקן נקרא מ-tokenStore (memory-first) — לא ישירות מ-localStorage.
+ *  - תשובת 401 עם טוקן קיים משדרת אירוע "auth:unauthorized" → ניתוק גלובלי
+ *    (AuthContext מאזין). כישלון login עצמו לא מפעיל את המנגנון.
+ *  - שגיאות עטופות ב-ApiError אחיד (message/status/data) לשני המצבים.
  */
+
+import { getToken } from "./tokenStore";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "/api";
-
-/**
- * שליפת הטוקן לבקשות מאומתות.
- * TODO: להעביר את מקור הטוקן ל-AuthContext (כרגע localStorage כפתרון ביניים),
- *       ולהוסיף רענון טוקן כשפג תוקף (401 → refresh → retry).
- */
-function getToken() {
-  return localStorage.getItem("token");
-}
+const API_MODE = import.meta.env.VITE_API_MODE ?? "mock";
 
 /** שגיאת API עם סטטוס וגוף — לטיפול אחיד בצד הקורא. */
 export class ApiError extends Error {
@@ -28,10 +28,29 @@ export class ApiError extends Error {
   }
 }
 
+/** 401 על בקשה מאומתת → ניתוק גלובלי (מדלגים על ניסיון התחברות שנכשל). */
+function notifyUnauthorized(path, hadToken) {
+  if (hadToken && !path.startsWith("/auth/login") && !path.startsWith("/auth/register")) {
+    window.dispatchEvent(new Event("auth:unauthorized"));
+  }
+}
+
 async function request(path, { method = "GET", body, headers = {}, signal } = {}) {
   const token = getToken();
-  const isForm = body instanceof FormData;
 
+  /* ---------- מצב mock: ניתוב ל"שרת" הדמו שבדפדפן ---------- */
+  if (API_MODE === "mock") {
+    const { handleMockRequest } = await import("./mockServer");
+    const res = await handleMockRequest({ method, path, body, token });
+    if (res.status === 401) notifyUnauthorized(path, !!token);
+    if (res.status >= 400) {
+      throw new ApiError(res.data?.message || `שגיאת שרת (${res.status})`, res.status, res.data);
+    }
+    return res.data;
+  }
+
+  /* ---------- מצב server: fetch אמיתי ---------- */
+  const isForm = body instanceof FormData;
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: {
@@ -43,7 +62,7 @@ async function request(path, { method = "GET", body, headers = {}, signal } = {}
     signal,
   });
 
-  // 204 No Content
+  if (res.status === 401) notifyUnauthorized(path, !!token);
   if (res.status === 204) return null;
 
   const data = await res.json().catch(() => null);

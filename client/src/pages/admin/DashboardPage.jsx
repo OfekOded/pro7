@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Topbar } from "../../components/layout";
 import { BarChart, DonutChart, HBarChart } from "../../components/charts";
-import { adminStats } from "../../data/mock";
+import { PageLoader } from "../../components/ui";
+import { useFetch } from "../../hooks/useFetch";
+import { adminService } from "../../services/adminService";
 import styles from "./DashboardPage.module.css";
 
-/** מקדם היקף לכל טווח — להמחשת החלפת נתונים חיה. */
-const FACTORS = { חודש: 1, רבעון: 3, שנה: 12 };
+/** תוויות הבורר → ערכי ה-API (docs/API.md: range=month|quarter|year). */
+const RANGES = [
+  { label: "חודש", key: "month" },
+  { label: "רבעון", key: "quarter" },
+  { label: "שנה", key: "year" },
+];
 
 const intComma = (n) => Math.round(n).toLocaleString("he-IL");
 const percent = (n) => `${n.toFixed(1)}%`;
@@ -43,7 +49,8 @@ function useCountUp(target, duration = 900) {
 
 /** כרטיס נתון בודד — מספר מטפס. ה-key (טווח) מרענן את האנימציה. */
 function AdminStatCard({ card }) {
-  const cur = useCountUp(card.target);
+  const cur = useCountUp(card.value);
+  const fmt = card.unit === "%" ? percent : intComma;
   return (
     <div className={styles.statCard}>
       <div className={styles.statLabel}>{card.label}</div>
@@ -51,7 +58,7 @@ function AdminStatCard({ card }) {
         className={styles.statValue}
         style={{ color: card.id === "cancel" ? "var(--accent-ink)" : "var(--ink)" }}
       >
-        {card.fmt(cur)}
+        {fmt(cur)}
       </div>
       <div className={`${styles.statDelta} ${card.deltaUp ? styles.up : styles.down}`}>
         {card.delta}
@@ -63,49 +70,27 @@ function AdminStatCard({ card }) {
 /**
  * AdminDashboardPage (מסך 8) — דשבורד מנהל/ת: ניתוחים וסטטיסטיקות.
  *
- * ✦ שדרוגי חוויה: מספרים שמטפסים (count-up), גרפים שצומחים מאפס, ובורר טווח
- *   (חודש/רבעון/שנה) שמחליף את הנתונים חי עם אנימציה חוזרת. מכבד reduced-motion.
- *
- * TODO: adminService.getStats(range) — להחליף את הסקיילינג המקומי בנתונים אמיתיים
- *       (אותו מבנה שמוצג כאן). ראו docs/API.md (admin/stats).
+ * הנתונים נשלפים דרך adminService (GET /admin/stats?range=) — בורר הטווח
+ * מפעיל שליפה מחדש, המספרים מטפסים והגרפים צומחים מהתשובה.
  */
 export function AdminDashboardPage() {
-  const [range, setRange] = useState(adminStats.ranges[0]);
-  const f = FACTORS[range] ?? 1;
+  const [range, setRange] = useState(RANGES[0]);
+  const { data, isLoading } = useFetch(() => adminService.stats(range.key), [range.key]);
 
-  // ----- נתוני הכרטיסים מותאמים לטווח -----
-  const cards = adminStats.cards.map((c) => {
-    const numeric = parseFloat(String(c.value).replace(/[^0-9.]/g, ""));
-    let target = numeric;
-    let fmt = intComma;
-    if (c.id === "total") target = numeric * f;
-    else if (c.id === "patients") target = numeric * (1 + (f - 1) * 0.25);
-    else if (c.id === "cancel") fmt = percent;
-    return { ...c, target, fmt };
-  });
-  const totalNumeric = parseFloat(adminStats.cards[0].value.replace(/[^0-9.]/g, "")) * f;
-
-  // ----- נתוני הגרפים: מתחילים מאפס וצומחים (transition ב-CSS) -----
-  const [barData, setBarData] = useState(() =>
-    adminStats.byDepartment.map((d) => ({ ...d, value: 0 }))
-  );
-  const [loadData, setLoadData] = useState(() =>
-    adminStats.loadByDoctor.map((d) => ({ ...d, value: 0 }))
-  );
+  // הגרפים מתחילים מאפס וצומחים (CSS transition) בכל תשובה חדשה
+  const [barData, setBarData] = useState([]);
+  const [loadData, setLoadData] = useState([]);
 
   useEffect(() => {
-    const factor = FACTORS[range] ?? 1;
-    // setTimeout (ולא rAF) — אמין גם בטאב לא-פעיל; ה-CSS transition מנפיש את הצמיחה.
+    if (!data) return;
+    setBarData(data.byDepartment.map((d) => ({ ...d, value: 0 })));
+    setLoadData(data.loadByDoctor.map((d) => ({ ...d, value: 0 })));
     const id = setTimeout(() => {
-      setBarData(
-        adminStats.byDepartment
-          .map((d) => ({ ...d, value: Math.round(d.value * factor) }))
-          .sort((a, b) => b.value - a.value)
-      );
-      setLoadData(adminStats.loadByDoctor.map((d) => ({ ...d, value: Math.round(d.value * factor) })));
+      setBarData(data.byDepartment);
+      setLoadData(data.loadByDoctor);
     }, 60);
     return () => clearTimeout(id);
-  }, [range]);
+  }, [data]);
 
   return (
     <>
@@ -114,13 +99,13 @@ export function AdminDashboardPage() {
         subtitle="יולי 2026"
         actions={
           <div className={styles.rangeGroup}>
-            {adminStats.ranges.map((r) => (
+            {RANGES.map((r) => (
               <button
-                key={r}
-                className={`${styles.rangeBtn} ${range === r ? styles.rangeActive : ""}`}
+                key={r.key}
+                className={`${styles.rangeBtn} ${range.key === r.key ? styles.rangeActive : ""}`}
                 onClick={() => setRange(r)}
               >
-                {r}
+                {r.label}
               </button>
             ))}
           </div>
@@ -128,36 +113,42 @@ export function AdminDashboardPage() {
       />
 
       <div className={styles.body}>
-        {/* כרטיסי נתונים */}
-        <div className={styles.statsGrid}>
-          {cards.map((c) => (
-            <AdminStatCard key={`${range}-${c.id}`} card={c} />
-          ))}
-        </div>
-
-        {/* שורת גרפים */}
-        <div className={styles.chartsRow}>
-          <div className={styles.chartCard}>
-            <h3 className={styles.chartTitle}>תורים לפי מחלקה</h3>
-            <BarChart data={barData} />
-          </div>
-          <div className={styles.chartCard}>
-            <h3 className={styles.chartTitle}>התפלגות סטטוס</h3>
-            <div key={range} className={styles.reveal}>
-              <DonutChart
-                segments={adminStats.statusBreakdown}
-                centerValue={intComma(totalNumeric)}
-                centerLabel="תורים"
-              />
+        {isLoading && !data ? (
+          <PageLoader label="טוען נתונים…" />
+        ) : data ? (
+          <>
+            {/* כרטיסי נתונים */}
+            <div className={styles.statsGrid}>
+              {data.cards.map((c) => (
+                <AdminStatCard key={`${range.key}-${c.id}`} card={c} />
+              ))}
             </div>
-          </div>
-        </div>
 
-        {/* עומס לפי רופא/ה */}
-        <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>עומס לפי רופא/ה ({range})</h3>
-          <HBarChart data={loadData} />
-        </div>
+            {/* שורת גרפים */}
+            <div className={styles.chartsRow}>
+              <div className={styles.chartCard}>
+                <h3 className={styles.chartTitle}>תורים לפי מחלקה</h3>
+                <BarChart data={barData} />
+              </div>
+              <div className={styles.chartCard}>
+                <h3 className={styles.chartTitle}>התפלגות סטטוס</h3>
+                <div key={range.key} className={styles.reveal}>
+                  <DonutChart
+                    segments={data.statusBreakdown}
+                    centerValue={intComma(data.total)}
+                    centerLabel="תורים"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* עומס לפי רופא/ה */}
+            <div className={styles.chartCard}>
+              <h3 className={styles.chartTitle}>עומס לפי רופא/ה ({range.label})</h3>
+              <HBarChart data={loadData} />
+            </div>
+          </>
+        ) : null}
       </div>
     </>
   );

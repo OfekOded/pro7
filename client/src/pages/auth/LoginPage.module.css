@@ -133,6 +133,49 @@
   color: var(--accent-ink);
 }
 
+/* ---------- כניסה מהירה לדמו ---------- */
+.demo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.demoLabel {
+  font-size: 12.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.demoBtns {
+  display: flex;
+  gap: 8px;
+}
+
+.demoBtn {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand-ink);
+  background: var(--brand-soft);
+  border: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.demoBtn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.demoBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 480px) {
   .grid2 {
     grid-template-columns: 1fr;

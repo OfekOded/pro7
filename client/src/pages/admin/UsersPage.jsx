@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Topbar } from "../../components/layout";
-import { Button, Chip, Table, Avatar, EmptyState } from "../../components/ui";
+import { Button, Chip, Table, Avatar, EmptyState, PageLoader } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { ROLE_LABEL, ROLES } from "../../lib/roles";
-import { directoryUsers } from "../../data/mock";
+import { useFetch } from "../../hooks/useFetch";
+import { adminService } from "../../services/adminService";
 import styles from "./UsersPage.module.css";
 
 const ROLE_ORDER = [ROLES.patient, ROLES.doctor, ROLES.receptionist, ROLES.admin];
@@ -18,14 +19,19 @@ const ROLE_TONE = {
  * UsersPage (מנהל/ת) — ניהול משתמשים.
  *
  * ✦ מסך ניהול מלא: חיפוש, סינון לפי תפקיד עם מונים, טבלה עם תגיות תפקיד/סטטוס,
- *   השבתה/הפעלה חיה + טוסט. נתונים מ-mock (עותק מקומי).
- * TODO: adminService.users({role,q}) + פעולות CRUD/השבתה מול /api/users (admin).
+ *   השבתה/הפעלה מול ה-API (PATCH /users/:id) + טוסט.
+ * הנתונים נשלפים דרך adminService (GET /users — admin בלבד).
  */
 export function AdminUsersPage() {
-  const [users, setUsers] = useState(directoryUsers);
+  const { data, isLoading } = useFetch(() => adminService.users(), []);
+  const [users, setUsers] = useState([]);
   const [role, setRole] = useState("all");
   const [q, setQ] = useState("");
   const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (data) setUsers(data);
+  }, [data]);
 
   useEffect(() => {
     if (!toast) return;
@@ -45,11 +51,15 @@ export function AdminUsersPage() {
     return byRole && byQ;
   });
 
-  const toggleStatus = (u) => {
-    setUsers((list) =>
-      list.map((x) => (x.id === u.id ? { ...x, status: x.status === "active" ? "disabled" : "active" } : x))
-    );
-    setToast(`${u.name} ${u.status === "active" ? "הושבת/ה" : "הופעל/ה"}`);
+  const toggleStatus = async (u) => {
+    const nextStatus = u.status === "active" ? "disabled" : "active";
+    try {
+      await adminService.setUserStatus(u.id, nextStatus);
+      setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, status: nextStatus } : x)));
+      setToast(`${u.name} ${nextStatus === "disabled" ? "הושבת/ה" : "הופעל/ה"}`);
+    } catch (err) {
+      setToast(err.message || "העדכון נכשל — נסו שוב");
+    }
   };
 
   const roleTag = (r) => (
@@ -112,7 +122,9 @@ export function AdminUsersPage() {
           </div>
         </div>
 
-        {visible.length === 0 ? (
+        {isLoading ? (
+          <PageLoader label="טוען משתמשים…" />
+        ) : visible.length === 0 ? (
           <EmptyState icon="users" title="לא נמצאו משתמשים" description="נסה/י חיפוש אחר או סינון אחר." />
         ) : (
           <div key={`${role}-${q}`} className={styles.reveal}>

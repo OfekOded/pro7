@@ -4,7 +4,6 @@ import { AppShell } from "./components/layout";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { PATHS } from "./lib/paths";
 import { ROLES } from "./lib/roles";
-import { currentPatient, currentDoctor, currentAdmin } from "./data/mock";
 
 // אימות
 import LoginPage from "./pages/auth/LoginPage";
@@ -47,7 +46,7 @@ export default function App() {
 
       {/* ===== מטופל ===== */}
       <Route element={<ProtectedRoute allow={[ROLES.patient]} />}>
-        <Route element={<AppShell role={ROLES.patient} user={currentPatient} />}>
+        <Route element={<AppShell role={ROLES.patient} />}>
           <Route path={PATHS.patientDashboard} element={<DashboardPage />} />
           <Route path={PATHS.book} element={<BookingWizardPage />} />
           <Route path={PATHS.appointments} element={<AppointmentsPage />} />
@@ -58,7 +57,7 @@ export default function App() {
 
       {/* ===== רופא/ה ===== */}
       <Route element={<ProtectedRoute allow={[ROLES.doctor]} />}>
-        <Route element={<AppShell role={ROLES.doctor} user={currentDoctor} />}>
+        <Route element={<AppShell role={ROLES.doctor} />}>
           <Route path={PATHS.doctorAgenda} element={<AgendaPage />} />
           <Route path={PATHS.doctorVisit} element={<VisitPage />} />
           <Route path={PATHS.doctorPatients} element={<DoctorPatientsPage />} />
@@ -69,7 +68,7 @@ export default function App() {
 
       {/* ===== מנהל/ת ===== */}
       <Route element={<ProtectedRoute allow={[ROLES.admin]} />}>
-        <Route element={<AppShell role={ROLES.admin} user={currentAdmin} />}>
+        <Route element={<AppShell role={ROLES.admin} />}>
           <Route path={PATHS.adminDashboard} element={<AdminDashboardPage />} />
           <Route path={PATHS.adminUsers} element={<AdminUsersPage />} />
           <Route path={PATHS.adminDoctors} element={<AdminDoctorsPage />} />

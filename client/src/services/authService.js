@@ -17,7 +17,10 @@ export const authService = {
   // GET /api/auth/me → { user } (לפי הטוקן)
   me: () => api.get("/auth/me"),
 
-  // TODO: logout (ניקוי טוקן בצד לקוח), refresh token, forgot/reset password.
+  // PUT /api/users/me — עדכון פרטי המשתמש המחובר
+  updateMe: (payload) => api.put("/users/me", payload),
+
+  // TODO: refresh token, forgot/reset password (logout ממומש ב-AuthContext).
 };
 
 export default authService;

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Topbar } from "../../components/layout";
-import { StatusBadge, Avatar } from "../../components/ui";
+import { StatusBadge, Avatar, PageLoader } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { visitPath } from "../../lib/paths";
-import { doctorAgenda } from "../../data/mock";
+import { useFetch } from "../../hooks/useFetch";
+import { doctorService } from "../../services/doctorService";
 import styles from "./AgendaPage.module.css";
 
 const VALUE_COLOR = {
@@ -74,10 +75,14 @@ function LiveClock() {
  * ✦ שדרוגי חוויה: מספרים שמטפסים בכרטיסי הסטטיסטיקה, שעון חי בבר העליון,
  *   פס התקדמות יומי (הושלמו/סה״כ), כניסה מדורגת לציר הזמן, ושורת "עכשיו" פועמת.
  *
- * נתונים מ-mock. TODO: doctorService.getAgenda(date).
+ * הנתונים נשלפים דרך doctorService (GET /doctors/me/agenda).
  */
 export function AgendaPage() {
-  const { greeting, dateLabel, stats, nextPatient, timeline } = doctorAgenda;
+  const { data, isLoading } = useFetch(() => doctorService.agenda("2026-07-12"), []);
+
+  if (isLoading || !data) return <PageLoader label="טוען אג׳נדה…" />;
+
+  const { greeting, dateLabel, stats, nextPatient, timeline } = data;
   // ההתקדמות נגזרת מכרטיסי הסטטיסטיקה כדי להישאר עקבית עם המספרים המוצגים.
   const total = stats.find((s) => s.id === "today")?.value ?? timeline.length;
   const done = stats.find((s) => s.id === "done")?.value ?? 0;

@@ -1,7 +1,9 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Icon } from "../icons";
 import { Avatar } from "../ui/Avatar";
 import { NAV_BY_ROLE, ROLE_THEME, ROLE_LABEL } from "../../lib/roles";
+import { PATHS } from "../../lib/paths";
+import { useAuth } from "../../hooks/useAuth";
 import styles from "./Sidebar.module.css";
 
 /**
@@ -15,6 +17,13 @@ import styles from "./Sidebar.module.css";
 export function Sidebar({ role, user }) {
   const nav = NAV_BY_ROLE[role] ?? [];
   const theme = ROLE_THEME[role] ?? "brand";
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate(PATHS.login, { replace: true });
+  };
 
   return (
     <aside className={`${styles.sidebar} ${styles[`theme-${theme}`]}`}>
@@ -48,6 +57,15 @@ export function Sidebar({ role, user }) {
             <div className={styles.userName}>{user.fullName}</div>
             <div className={styles.userRole}>{ROLE_LABEL[user.role] ?? ROLE_LABEL[role]}</div>
           </div>
+          <button
+            type="button"
+            className={styles.logout}
+            onClick={handleLogout}
+            aria-label="התנתקות"
+            title="התנתקות"
+          >
+            <Icon name="logout" size={16} />
+          </button>
         </div>
       ) : null}
     </aside>

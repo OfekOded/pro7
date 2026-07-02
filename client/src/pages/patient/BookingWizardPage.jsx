@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Topbar } from "../../components/layout";
-import { Button, Textarea, Alert, Avatar, Stepper } from "../../components/ui";
+import { Button, Textarea, Alert, Avatar, Stepper, PageLoader } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { PATHS } from "../../lib/paths";
-import {
-  departments,
-  doctorsByDepartment,
-  calendarMonth,
-  timeSlots,
-  SLOT_MINUTES,
-} from "../../data/mock";
+import { useFetch } from "../../hooks/useFetch";
+import { departmentService } from "../../services/departmentService";
+import { doctorService } from "../../services/doctorService";
+import { appointmentService } from "../../services/appointmentService";
+import { calendarMonth, SLOT_MINUTES } from "../../data/mock";
 import styles from "./BookingWizardPage.module.css";
 
 const STEPS = ["מחלקה", "רופא/ה", "תאריך", "שעה", "אישור"];
@@ -24,19 +22,18 @@ const LEADING_BLANKS = 2; // היום הראשון בחודש הדמו נופל 
 
 const cx = (...a) => a.filter(Boolean).join(" ");
 
+/** יום בלוח הדמו (יולי 2026) → תאריך ISO עבור ה-API. */
+const dateISO = (day) => `2026-07-${String(day).padStart(2, "0")}`;
+
 /**
  * BookingWizardPage (מסך 3) — אשף זימון תור ב-5 שלבים. הזרימה המרכזית.
  *
- * האינטראקטיביות כאן היא UI בלבד: ניהול state מקומי לשלב ולבחירות
- * (step / departmentId / doctorId / date / slot / reason). הנתונים מ-data/mock.
- *
- * ✦ שדרוגי חוויה: מעברי שלבים מונפשים מודעי-כיוון, ניווט מקלדת (Enter להמשך),
- *   ומסך הצלחה עם אנימציית וי. הכול מכבד prefers-reduced-motion.
- *
- * TODO (שלב הלוגיקה): כל שלב צריך למשוך מהשרת —
+ * מחווט מקצה-לקצה דרך שכבת ה-services (חוזה docs/API.md):
  *   מחלקות: GET /departments · רופאים: GET /doctors?departmentId=
  *   זמינות: GET /doctors/:id/availability?date= · שמירה: POST /appointments.
- *   יש לאמת זמינות מול double-booking לפני שמירה (ראו appointment.service).
+ * השרת (mock/אמיתי) אוכף מניעת double-booking — כישלון 409 מוצג למשתמש.
+ *
+ * הלוח החודשי נשאר על לוח הדמו (calendarMonth) עד שיוגדר חוזה ימים-פנויים בשרת.
  */
 export function BookingWizardPage() {
   const navigate = useNavigate();
@@ -48,10 +45,28 @@ export function BookingWizardPage() {
   const [date, setDate] = useState(null);
   const [slot, setSlot] = useState(null);
   const [reason, setReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [bookError, setBookError] = useState(null);
 
-  const department = departments.find((d) => d.id === departmentId);
-  const doctorList = departmentId ? doctorsByDepartment(departmentId) : [];
-  const doctor = doctorList.find((d) => d.id === doctorId);
+  /* ---- שליפות לפי התקדמות האשף ---- */
+  const { data: departments, isLoading: loadingDepts } = useFetch(
+    () => departmentService.list(),
+    []
+  );
+  const { data: doctorList, isLoading: loadingDoctors } = useFetch(
+    () => (departmentId ? doctorService.listByDepartment(departmentId) : Promise.resolve(null)),
+    [departmentId]
+  );
+  const { data: slots, isLoading: loadingSlots } = useFetch(
+    () =>
+      doctorId && date
+        ? doctorService.availability(doctorId, dateISO(date))
+        : Promise.resolve(null),
+    [doctorId, date]
+  );
+
+  const department = departments?.find((d) => d.id === departmentId);
+  const doctor = doctorList?.find((d) => d.id === doctorId);
 
   const pickDepartment = (id) => {
     setDepartmentId(id);
@@ -62,6 +77,10 @@ export function BookingWizardPage() {
   const pickDoctor = (id) => {
     setDoctorId(id);
     setDate(null);
+    setSlot(null);
+  };
+  const pickDate = (day) => {
+    setDate(day);
     setSlot(null);
   };
 
@@ -75,7 +94,26 @@ export function BookingWizardPage() {
     setDirection(-1);
     setStep((s) => Math.max(0, s - 1));
   }, []);
-  const confirm = useCallback(() => setConfirmed(true), []);
+
+  /** שליחה אמיתית — POST /appointments (מאומת double-booking בשרת). */
+  const confirm = useCallback(async () => {
+    setSubmitting(true);
+    setBookError(null);
+    try {
+      await appointmentService.create({
+        doctorId,
+        departmentId,
+        date: dateISO(date),
+        time: slot,
+        reason: reason.trim(),
+      });
+      setConfirmed(true);
+    } catch (err) {
+      setBookError(err.message || "קביעת התור נכשלה — נסו שוב");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [doctorId, departmentId, date, slot, reason]);
 
   const reset = () => {
     setConfirmed(false);
@@ -86,12 +124,13 @@ export function BookingWizardPage() {
     setDate(null);
     setSlot(null);
     setReason("");
+    setBookError(null);
   };
 
   // ניווט מקלדת: Enter מקדם (אך לא בתוך textarea, ולא במסך ההצלחה)
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key !== "Enter" || confirmed) return;
+      if (e.key !== "Enter" || confirmed || submitting) return;
       if (e.target?.tagName === "TEXTAREA") return;
       if (step < 4 && canContinue) {
         e.preventDefault();
@@ -103,7 +142,7 @@ export function BookingWizardPage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [step, canContinue, confirmed, next, confirm]);
+  }, [step, canContinue, confirmed, submitting, next, confirm]);
 
   /* ----------------------- מסך הצלחה ----------------------- */
   if (confirmed) {
@@ -157,29 +196,33 @@ export function BookingWizardPage() {
                 <>
                   <h2 className={styles.stepTitle}>לאיזו מחלקה תרצה/י לקבוע תור?</h2>
                   <p className={styles.stepSub}>בחר/י את התחום הרפואי המתאים</p>
-                  <div className={styles.deptGrid}>
-                    {departments.map((d, i) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        style={{ "--i": i }}
-                        className={cx(styles.deptCard, styles.pop, departmentId === d.id && styles.selected)}
-                        aria-pressed={departmentId === d.id}
-                        onClick={() => pickDepartment(d.id)}
-                      >
-                        {departmentId === d.id && (
-                          <span className={styles.checkCorner}>
-                            <Icon name="check" size={13} stroke={3.5} />
+                  {loadingDepts ? (
+                    <PageLoader label="טוען מחלקות…" />
+                  ) : (
+                    <div className={styles.deptGrid}>
+                      {(departments ?? []).map((d, i) => (
+                        <button
+                          key={d.id}
+                          type="button"
+                          style={{ "--i": i }}
+                          className={cx(styles.deptCard, styles.pop, departmentId === d.id && styles.selected)}
+                          aria-pressed={departmentId === d.id}
+                          onClick={() => pickDepartment(d.id)}
+                        >
+                          {departmentId === d.id && (
+                            <span className={styles.checkCorner}>
+                              <Icon name="check" size={13} stroke={3.5} />
+                            </span>
+                          )}
+                          <span className={styles.deptIcon}>
+                            <Icon name={d.icon} size={24} />
                           </span>
-                        )}
-                        <span className={styles.deptIcon}>
-                          <Icon name={d.icon} size={24} />
-                        </span>
-                        <div className={styles.deptName}>{d.name}</div>
-                        <div className={styles.deptMeta}>{d.doctorsCount} רופאים</div>
-                      </button>
-                    ))}
-                  </div>
+                          <div className={styles.deptName}>{d.name}</div>
+                          <div className={styles.deptMeta}>{d.doctorsCount} רופאים</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
 
@@ -188,38 +231,42 @@ export function BookingWizardPage() {
                 <>
                   <span className={styles.contextPill}>{department?.name}</span>
                   <h2 className={styles.stepTitle}>בחר/י רופא/ה</h2>
-                  <div className={styles.doctorList}>
-                    {doctorList.map((d, i) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        style={{ "--i": i }}
-                        className={cx(styles.doctorCard, styles.pop, doctorId === d.id && styles.selected)}
-                        aria-pressed={doctorId === d.id}
-                        onClick={() => pickDoctor(d.id)}
-                      >
-                        <Avatar initial={d.initial} size={54} tone={doctorId === d.id ? "brand" : "gray"} />
-                        <div className={styles.doctorInfo}>
-                          <div className={styles.doctorName}>{d.name}</div>
-                          <div className={styles.doctorMeta}>
-                            {d.specialty} · חדר {d.room}
+                  {loadingDoctors ? (
+                    <PageLoader label="טוען רופאים…" />
+                  ) : (
+                    <div className={styles.doctorList}>
+                      {(doctorList ?? []).map((d, i) => (
+                        <button
+                          key={d.id}
+                          type="button"
+                          style={{ "--i": i }}
+                          className={cx(styles.doctorCard, styles.pop, doctorId === d.id && styles.selected)}
+                          aria-pressed={doctorId === d.id}
+                          onClick={() => pickDoctor(d.id)}
+                        >
+                          <Avatar initial={d.initial} size={54} tone={doctorId === d.id ? "brand" : "gray"} />
+                          <div className={styles.doctorInfo}>
+                            <div className={styles.doctorName}>{d.name}</div>
+                            <div className={styles.doctorMeta}>
+                              {d.specialty} · חדר {d.room}
+                            </div>
                           </div>
-                        </div>
-                        <div className={styles.doctorSide}>
-                          <span
-                            className={cx(
-                              styles.availBadge,
-                              d.availability === "free" ? styles.availFree : styles.availBusy
-                            )}
-                          >
-                            <span className={styles.availDot} />
-                            {d.availability === "free" ? "פנוי/ה השבוע" : "עומס גבוה"}
-                          </span>
-                          <div className={styles.nextSlot}>התור הקרוב: {d.nextSlot}</div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                          <div className={styles.doctorSide}>
+                            <span
+                              className={cx(
+                                styles.availBadge,
+                                d.availability === "free" ? styles.availFree : styles.availBusy
+                              )}
+                            >
+                              <span className={styles.availDot} />
+                              {d.availability === "free" ? "פנוי/ה השבוע" : "עומס גבוה"}
+                            </span>
+                            <div className={styles.nextSlot}>התור הקרוב: {d.nextSlot}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
 
@@ -258,7 +305,7 @@ export function BookingWizardPage() {
                             type="button"
                             disabled={isFull}
                             aria-pressed={isSelected}
-                            onClick={() => setDate(d.day)}
+                            onClick={() => pickDate(d.day)}
                             className={cx(
                               styles.calDay,
                               isSelected ? styles.calSelected : isFull ? styles.calFull : styles.calFree
@@ -291,36 +338,40 @@ export function BookingWizardPage() {
                   <p className={styles.stepSub}>
                     {doctor?.name} · {date} ב{calendarMonth.label} · משך תור {SLOT_MINUTES} דק׳
                   </p>
-                  {[
-                    { key: "morning", label: "בוקר", icon: "clock", list: timeSlots.morning },
-                    { key: "afternoon", label: "צהריים ואחה״צ", icon: "clock", list: timeSlots.afternoon },
-                  ].map((group) => (
-                    <div key={group.key} className={styles.slotGroup}>
-                      <div className={styles.slotGroupLabel}>
-                        <Icon name={group.icon} size={15} />
-                        {group.label}
+                  {loadingSlots || !slots ? (
+                    <PageLoader label="בודק זמינות…" />
+                  ) : (
+                    [
+                      { key: "morning", label: "בוקר", icon: "clock", list: slots.morning },
+                      { key: "afternoon", label: "צהריים ואחה״צ", icon: "clock", list: slots.afternoon },
+                    ].map((group) => (
+                      <div key={group.key} className={styles.slotGroup}>
+                        <div className={styles.slotGroupLabel}>
+                          <Icon name={group.icon} size={15} />
+                          {group.label}
+                        </div>
+                        <div className={styles.slotGrid}>
+                          {group.list.map((s, i) => (
+                            <button
+                              key={s.time}
+                              type="button"
+                              disabled={s.taken}
+                              style={{ "--i": i }}
+                              aria-pressed={slot === s.time}
+                              onClick={() => setSlot(s.time)}
+                              className={cx(
+                                styles.slot,
+                                styles.pop,
+                                slot === s.time ? styles.slotSelected : s.taken && styles.slotTaken
+                              )}
+                            >
+                              {s.time}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                      <div className={styles.slotGrid}>
-                        {group.list.map((s, i) => (
-                          <button
-                            key={s.time}
-                            type="button"
-                            disabled={s.taken}
-                            style={{ "--i": i }}
-                            aria-pressed={slot === s.time}
-                            onClick={() => setSlot(s.time)}
-                            className={cx(
-                              styles.slot,
-                              styles.pop,
-                              slot === s.time ? styles.slotSelected : s.taken && styles.slotTaken
-                            )}
-                          >
-                            {s.time}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </>
               )}
 
@@ -362,9 +413,15 @@ export function BookingWizardPage() {
                       rows={3}
                     />
 
-                    <Alert variant="info" className={styles.confirmAlert}>
-                      ניתן לבטל את התור עד 24 שעות לפני המועד ללא חיוב. תישלח תזכורת יום לפני.
-                    </Alert>
+                    {bookError ? (
+                      <Alert variant="error" className={styles.confirmAlert}>
+                        {bookError}
+                      </Alert>
+                    ) : (
+                      <Alert variant="info" className={styles.confirmAlert}>
+                        ניתן לבטל את התור עד 24 שעות לפני המועד ללא חיוב. תישלח תזכורת יום לפני.
+                      </Alert>
+                    )}
                   </div>
                 </>
               )}
@@ -373,7 +430,7 @@ export function BookingWizardPage() {
 
           {/* ---------- ניווט ---------- */}
           <div className={styles.nav}>
-            <Button variant="outline" onClick={back} disabled={step === 0}>
+            <Button variant="outline" onClick={back} disabled={step === 0 || submitting}>
               חזרה
             </Button>
             {step < 4 ? (
@@ -385,8 +442,12 @@ export function BookingWizardPage() {
                 {CONTINUE_LABEL[step]}
               </Button>
             ) : (
-              <Button onClick={confirm} iconStart={<Icon name="check" size={18} stroke={2.6} />}>
-                אישור וקביעת התור
+              <Button
+                onClick={confirm}
+                disabled={submitting}
+                iconStart={submitting ? null : <Icon name="check" size={18} stroke={2.6} />}
+              >
+                {submitting ? "קובע את התור…" : "אישור וקביעת התור"}
               </Button>
             )}
           </div>

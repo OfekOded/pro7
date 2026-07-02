@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Tabs, StatusBadge, FileRow, Button } from "../../components/ui";
+import { Tabs, StatusBadge, FileRow, Button, PageLoader } from "../../components/ui";
 import { Icon } from "../../components/icons";
-import { formatDateHe } from "../../utils/format";
-import { medicalRecord } from "../../data/mock";
+import { useAuth } from "../../hooks/useAuth";
+import { useFetch } from "../../hooks/useFetch";
+import { recordService } from "../../services/recordService";
 import styles from "./MedicalRecordPage.module.css";
 
 /**
@@ -11,15 +12,20 @@ import styles from "./MedicalRecordPage.module.css";
  * ✦ שדרוגי חוויה: מוני טאבים, מעברי טאבים מונפשים, כניסה מדורגת של כרטיסים,
  *   והעלאת מסמך חיה (מוסיפה שורה + טוסט). מצב מרשמים: הכל / פעילים.
  *
- * הנתונים מ-mock (מסמכים בעותק מקומי כדי שהעלאה תעדכן את התצוגה).
- * TODO: recordService.get(patientId); העלאה אמיתית → POST /api/documents (multipart).
+ * הנתונים נשלפים דרך recordService (GET /patients/:id/record); העלאת מסמך
+ * מתבצעת מול POST /api/documents (multipart) — התצוגה מתעדכנת מהתשובה.
  */
 export function MedicalRecordPage() {
-  const { patient, visits, prescriptions } = medicalRecord;
+  const { user } = useAuth();
+  const { data, isLoading } = useFetch(() => recordService.get(user.id), [user.id]);
   const [tab, setTab] = useState("visits");
-  const [documents, setDocuments] = useState(medicalRecord.documents);
+  const [documents, setDocuments] = useState([]);
   const [rxFilter, setRxFilter] = useState("all"); // all | active
   const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (data) setDocuments(data.documents);
+  }, [data]);
 
   useEffect(() => {
     if (!toast) return;
@@ -27,14 +33,20 @@ export function MedicalRecordPage() {
     return () => clearTimeout(id);
   }, [toast]);
 
-  const uploadDocument = () => {
-    const n = documents.length + 1;
-    setDocuments((d) => [
-      { id: Date.now(), name: `מסמך_${n}.pdf`, kind: "pdf", meta: `${formatDateHe(new Date())} · 320KB` },
-      ...d,
-    ]);
-    setToast("המסמך הועלה לתיק");
+  const uploadDocument = async () => {
+    try {
+      const fd = new FormData();
+      fd.append("name", `מסמך_${documents.length + 1}.pdf`);
+      const doc = await recordService.uploadDocument(fd);
+      setDocuments((d) => [doc, ...d]);
+      setToast("המסמך הועלה לתיק");
+    } catch (err) {
+      setToast(err.message || "ההעלאה נכשלה — נסו שוב");
+    }
   };
+
+  if (isLoading || !data) return <PageLoader label="טוען תיק רפואי…" />;
+  const { patient, visits, prescriptions } = data;
 
   const visibleRx = rxFilter === "active" ? prescriptions.filter((p) => p.active) : prescriptions;
 

@@ -30,6 +30,16 @@ export const ROLE_THEME = {
   admin: "brand",
 };
 
+/** דף הבית של כל תפקיד — לניתוב אחרי התחברות ולהפניית תפקיד-לא-מורשה. */
+export const HOME_BY_ROLE = {
+  patient: "/",
+  receptionist: "/",
+  doctor: "/doctor",
+  admin: "/admin",
+};
+
+export const homeFor = (role) => HOME_BY_ROLE[role] ?? "/";
+
 import { PATHS } from "./paths";
 
 /** ניווט הסייד-בר (דסקטופ) לפי תפקיד. */

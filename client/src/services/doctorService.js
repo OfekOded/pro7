@@ -19,7 +19,11 @@ export const doctorService = {
   // GET /api/doctors/me/agenda?date= → אג׳נדת היום (רופא/ה מחובר/ת)
   agenda: (date) => api.get(`/doctors/me/agenda?date=${encodeURIComponent(date)}`),
 
-  // TODO: ניהול יומן זמינות (GET/PUT /doctors/me/availability), רשימת מטופלים.
+  // PUT /api/doctors/me — עדכון פרופיל מקצועי
+  updateMe: (payload) => api.put("/doctors/me", payload),
+
+  // PUT /api/doctors/me/availability — שמירת יומן הזמינות השבועי
+  saveAvailability: (payload) => api.put("/doctors/me/availability", payload),
 };
 
 export default doctorService;

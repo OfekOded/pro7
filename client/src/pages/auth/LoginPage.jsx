@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../components/layout";
-import { Button, Field, Input, Tabs } from "../../components/ui";
-import { PATHS } from "../../lib/paths";
+import { Alert, Button, Field, Input, Tabs } from "../../components/ui";
+import { homeFor } from "../../lib/roles";
+import { useAuth } from "../../hooks/useAuth";
 import { isEmail, isRequired, isStrongPassword, isValidIsraeliId, isPhone } from "../../utils/validators";
 import styles from "./LoginPage.module.css";
 
@@ -11,34 +12,57 @@ const TABS = [
   { key: "register", label: "הרשמה" },
 ];
 
+/** חשבונות דמו להתחברות מהירה (mock mode) — נוח לבדיקה/הצגה לפי תפקיד. */
+const DEMO_LOGINS = [
+  { label: "מטופל", email: "israel@clinic.test" },
+  { label: "רופאה", email: "levi@clinic.test" },
+  { label: "מנהלת", email: "admin@clinic.test" },
+];
+
 /**
- * LoginPage (מסך 1) — התחברות והרשמה.
+ * LoginPage (מסך 1) — התחברות והרשמה, מחוברות ל-AuthContext.
  *
- * ✦ שדרוגי חוויה: ולידציה בזמן אמת (utils/validators), הצג/הסתר סיסמה,
- *   מצב טעינה על השליחה, ומעבר חלק בין הטאבים.
+ * אבטחה:
+ *  - הסיסמה נשלחת ישירות ל-login/register ולא נשמרת; השדות מנוקים אחרי כל ניסיון.
+ *  - הודעת כשל גנרית מהשרת (לא חושפת אם המייל קיים).
+ *  - "זכור אותי" קובע את משך הסשן (localStorage) — אחרת sessionStorage.
+ *  - אימות הסיסמה עצמו מתבצע בשרת בלבד (bcrypt) — ראו mockServer/auth.service.
  *
- * תצוגה בלבד: לאחר ולידציה מוצלחת מנווט לדשבורד המטופל (דמו).
- * TODO (שלב הלוגיקה): לחבר ל-authService (login/register), לשמור טוקן ב-AuthContext,
- *       ולטפל בשגיאות שרת (אימייל תפוס, סיסמה שגויה).
+ * לאחר הצלחה: ניווט ליעד המקורי (state.from) או לדף הבית של התפקיד.
  */
 export function LoginPage() {
   const [tab, setTab] = useState("login");
   const [values, setValues] = useState({});
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(null);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { login, register, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname;
+
+  // מי שכבר מחובר לא צריך לראות את מסך ההתחברות
+  useEffect(() => {
+    if (isAuthenticated) navigate(from ?? homeFor(user.role), { replace: true });
+  }, [isAuthenticated, user, from, navigate]);
 
   const set = (name) => (e) => {
     const v = e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setValues((s) => ({ ...s, [name]: v }));
     if (errors[name]) setErrors((s) => ({ ...s, [name]: undefined }));
+    if (serverError) setServerError(null);
   };
 
   const switchTab = (t) => {
     setTab(t);
     setErrors({});
+    setServerError(null);
   };
+
+  const clearPasswords = () =>
+    setValues((s) => ({ ...s, password: "", password2: "" }));
 
   const validate = () => {
     const e = {};
@@ -57,14 +81,47 @@ export function LoginPage() {
     return e;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
     setLoading(true);
-    // דמו: סימולציית קריאת שרת ואז מעבר לדשבורד.
-    setTimeout(() => navigate(PATHS.patientDashboard), 800);
+    setServerError(null);
+    try {
+      const loggedIn =
+        tab === "login"
+          ? await login(
+              { email: values.email, password: values.password },
+              { remember: !!values.remember }
+            )
+          : await register({
+              fullName: values.fullName,
+              nationalId: values.nationalId,
+              email: values.email,
+              phone: values.phone,
+              password: values.password,
+            });
+      navigate(from ?? homeFor(loggedIn.role), { replace: true });
+    } catch (err) {
+      setServerError(err.message || "אירעה שגיאה — נסו שוב");
+      clearPasswords();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const quickLogin = async (email) => {
+    setLoading(true);
+    setServerError(null);
+    try {
+      const loggedIn = await login({ email, password: "demo" }, { remember: false });
+      navigate(homeFor(loggedIn.role), { replace: true });
+    } catch (err) {
+      setServerError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const passwordField = (name, label, autoComplete) => (
@@ -106,6 +163,8 @@ export function LoginPage() {
       <Tabs tabs={TABS} value={tab} onChange={switchTab} variant="pill" className={styles.tabs} />
 
       <form className={styles.form} onSubmit={handleSubmit} noValidate key={tab}>
+        {serverError ? <Alert variant="error">{serverError}</Alert> : null}
+
         {tab === "login" ? (
           <>
             <Field label="דוא״ל" htmlFor="email" error={errors.email}>
@@ -133,6 +192,25 @@ export function LoginPage() {
               {loading ? <span className={styles.spinner} aria-hidden="true" /> : null}
               {loading ? "מתחבר…" : "התחברות"}
             </Button>
+
+            {/* כניסה מהירה לדמו — לצורכי הצגה/בדיקה לפי תפקיד */}
+            <div className={styles.demo}>
+              <span className={styles.demoLabel}>כניסה מהירה לדמו:</span>
+              <div className={styles.demoBtns}>
+                {DEMO_LOGINS.map((d) => (
+                  <button
+                    key={d.email}
+                    type="button"
+                    className={styles.demoBtn}
+                    disabled={loading}
+                    onClick={() => quickLogin(d.email)}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <p className={styles.switch}>
               אין לך חשבון?{" "}
               <button type="button" className={styles.link} onClick={() => switchTab("register")}>
@@ -195,6 +273,7 @@ export function LoginPage() {
                   type={showPass ? "text" : "password"}
                   placeholder="••••••••"
                   ltr
+                  autoComplete="new-password"
                   error={!!errors.password2}
                   value={values.password2 || ""}
                   onChange={set("password2")}

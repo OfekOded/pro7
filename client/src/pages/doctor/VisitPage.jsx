@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, Input, Textarea, Field, Avatar, Dropzone, Modal } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { PATHS } from "../../lib/paths";
+import { recordService } from "../../services/recordService";
 import { visitContext } from "../../data/mock";
 import styles from "./VisitPage.module.css";
 
@@ -35,6 +36,24 @@ export function VisitPage() {
   );
   const [draftSaved, setDraftSaved] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  /** סגירת ביקור מול ה-API — POST /visits (יוצר visit + מרשמים מקושרים). */
+  const closeVisit = async () => {
+    setClosing(true);
+    try {
+      await recordService.closeVisit({
+        appointmentId: 1,
+        diagnosis,
+        summary,
+        prescriptions,
+      });
+      navigate(PATHS.doctorAgenda);
+    } catch {
+      setClosing(false);
+      setConfirmClose(false);
+    }
+  };
 
   useEffect(() => {
     if (!draftSaved) return;
@@ -208,8 +227,10 @@ export function VisitPage() {
         title="סגירת ביקור"
         footer={
           <>
-            <Button onClick={() => navigate(PATHS.doctorAgenda)}>אישור וסגירה</Button>
-            <Button variant="outline" onClick={() => setConfirmClose(false)}>
+            <Button onClick={closeVisit} disabled={closing}>
+              {closing ? "סוגר…" : "אישור וסגירה"}
+            </Button>
+            <Button variant="outline" onClick={() => setConfirmClose(false)} disabled={closing}>
               חזרה לעריכה
             </Button>
           </>
