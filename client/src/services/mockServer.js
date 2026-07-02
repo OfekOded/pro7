@@ -83,6 +83,9 @@ export async function handleMockRequest({ method, path, body, token }) {
   const q = url.searchParams;
   const M = method.toUpperCase();
 
+  // לוג בקשות בפיתוח בלבד — לאיתור בקשות כפולות/מיותרות (לא רץ ב-build)
+  if (import.meta.env.DEV) console.debug(`[mock] ${M} ${path}`);
+
   /* ---------- Auth ---------- */
   if (M === "POST" && p === "/auth/login") {
     const { email, password } = body ?? {};
@@ -223,8 +226,15 @@ export async function handleMockRequest({ method, path, body, token }) {
 
   const userMatch = p.match(/^\/users\/(\d+)$/);
   if (M === "PATCH" && userMatch) {
-    const user = db.users.find((u) => u.id === Number(userMatch[1]));
+    const targetId = Number(userMatch[1]);
+    const user = db.users.find((u) => u.id === targetId);
     if (!user) return err(404, "המשתמש לא נמצא");
+    // 🔒 הגנה מנעילה-עצמית: אסור להשבית את החשבון שמבצע את הבקשה.
+    // כלל זהה חייב להיאכף גם בשרת האמיתי (user.service).
+    const requester = userFromToken(token);
+    if (body?.status === "disabled" && requester?.id === targetId) {
+      return err(422, "לא ניתן להשבית את החשבון שבו את/ה מחובר/ת");
+    }
     Object.assign(user, body);
     return ok(user);
   }

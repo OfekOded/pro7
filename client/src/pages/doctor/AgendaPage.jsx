@@ -90,7 +90,7 @@ export function AgendaPage() {
 
   return (
     <>
-      <Topbar title={`${greeting} ☀️`} subtitle={`${dateLabel} · 8 תורים היום`} actions={<LiveClock />} bell />
+      <Topbar title={`${greeting} ☀️`} subtitle={`${dateLabel} · ${total} תורים היום`} actions={<LiveClock />} bell />
 
       <div className={styles.body}>
         {/* סטטיסטיקות */}

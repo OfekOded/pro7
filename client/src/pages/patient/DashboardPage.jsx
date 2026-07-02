@@ -12,10 +12,10 @@ import { nextAppointment } from "../../data/mock";
 import styles from "./DashboardPage.module.css";
 
 const QUICK_ACTIONS = [
-  { to: PATHS.book, icon: "plus", title: "זימון תור", desc: "קבע/י תור חדש", primary: true },
-  { to: PATHS.appointments, icon: "calendar", title: "התורים שלי", desc: "2 תורים פעילים", tone: "brand" },
-  { to: PATHS.record, icon: "file", title: "תיק רפואי", desc: "ביקורים ומרשמים", tone: "green" },
-  { to: PATHS.record, icon: "upload", title: "מסמכים", desc: "העלאה וצפייה", tone: "gray" },
+  { id: "book", to: PATHS.book, icon: "plus", title: "זימון תור", desc: "קבע/י תור חדש", primary: true },
+  { id: "appointments", to: PATHS.appointments, icon: "calendar", title: "התורים שלי", desc: "", tone: "brand" },
+  { id: "record", to: PATHS.record, icon: "file", title: "תיק רפואי", desc: "ביקורים ומרשמים", tone: "green" },
+  { id: "docs", to: PATHS.record, icon: "upload", title: "מסמכים", desc: "העלאה וצפייה", tone: "gray" },
 ];
 
 /** ברכה לפי שעת היום. */
@@ -145,7 +145,11 @@ export function DashboardPage() {
                   <Icon name={a.icon} size={20} stroke={a.primary ? 2.4 : 2} />
                 </span>
                 <div className={styles.quickTitle}>{a.title}</div>
-                <div className={styles.quickDesc}>{a.desc}</div>
+                <div className={styles.quickDesc}>
+                  {a.id === "appointments"
+                    ? `${upcoming?.length ?? "…"} תורים פעילים`
+                    : a.desc}
+                </div>
               </Link>
             ))}
           </div>

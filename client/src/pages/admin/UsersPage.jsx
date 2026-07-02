@@ -3,6 +3,7 @@ import { Topbar } from "../../components/layout";
 import { Button, Chip, Table, Avatar, EmptyState, PageLoader } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { ROLE_LABEL, ROLES } from "../../lib/roles";
+import { useAuth } from "../../hooks/useAuth";
 import { useFetch } from "../../hooks/useFetch";
 import { adminService } from "../../services/adminService";
 import styles from "./UsersPage.module.css";
@@ -21,8 +22,12 @@ const ROLE_TONE = {
  * ✦ מסך ניהול מלא: חיפוש, סינון לפי תפקיד עם מונים, טבלה עם תגיות תפקיד/סטטוס,
  *   השבתה/הפעלה מול ה-API (PATCH /users/:id) + טוסט.
  * הנתונים נשלפים דרך adminService (GET /users — admin בלבד).
+ *
+ * 🔒 הגנה מנעילה-עצמית: מנהל/ת לא יכול/ה להשבית את החשבון של עצמו/ה —
+ *    הכפתור מוחלף בתגית "החשבון שלך" (וה-שרת/mock דוחה זאת גם ב-API).
  */
 export function AdminUsersPage() {
+  const { user: currentUser } = useAuth();
   const { data, isLoading } = useFetch(() => adminService.users(), []);
   const [users, setUsers] = useState([]);
   const [role, setRole] = useState("all");
@@ -80,9 +85,15 @@ export function AdminUsersPage() {
     </span>,
     <div className={styles.rowActions} key="a">
       <Button variant="outline" size="sm">עריכה</Button>
-      <Button variant={u.status === "active" ? "danger" : "secondary"} size="sm" onClick={() => toggleStatus(u)}>
-        {u.status === "active" ? "השבתה" : "הפעלה"}
-      </Button>
+      {u.id === currentUser?.id ? (
+        <span className={styles.selfTag} title="לא ניתן להשבית את החשבון שבו את/ה מחובר/ת">
+          החשבון שלך
+        </span>
+      ) : (
+        <Button variant={u.status === "active" ? "danger" : "secondary"} size="sm" onClick={() => toggleStatus(u)}>
+          {u.status === "active" ? "השבתה" : "הפעלה"}
+        </Button>
+      )}
     </div>,
   ]);
 

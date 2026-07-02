@@ -117,8 +117,21 @@
 
 .rowActions {
   display: flex;
+  align-items: center;
   gap: 7px;
   justify-content: flex-end;
+}
+
+/* תגית "החשבון שלך" — במקום כפתור השבתה עבור המשתמש המחובר */
+.selfTag {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px dashed var(--line);
+  padding: 6px 12px;
+  border-radius: 9px;
+  white-space: nowrap;
 }
 
 .reveal {

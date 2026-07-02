@@ -1,14 +1,23 @@
+import { useEffect } from "react";
 import { Icon } from "../icons";
 import styles from "./Modal.module.css";
 
 /**
  * Modal — דיאלוג מודאלי פשוט עם שכבת רקע. ללא לוגיקה עסקית.
+ * נסגר גם במקש Escape (נגישות מקלדת).
  * @param {boolean} open
  * @param {()=>void} onClose
  * @param {string} [title]
  * @param {React.ReactNode} [footer] - אזור הפעולות התחתון.
  */
 export function Modal({ open, onClose, title, footer, children }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => e.key === "Escape" && onClose?.();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   if (!open) return null;
   return (
     <div className={styles.overlay} onClick={onClose} role="presentation">

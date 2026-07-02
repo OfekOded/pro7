@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { PageLoader } from "../components/ui";
+import { Button, EmptyState, PageLoader } from "../components/ui";
 import { PATHS } from "../lib/paths";
 import { homeFor } from "../lib/roles";
 
@@ -18,7 +18,7 @@ import { homeFor } from "../lib/roles";
  * @param {string[]} [allow] - התפקידים המורשים לנתיב (למשל [ROLES.doctor]).
  */
 export function ProtectedRoute({ allow }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const location = useLocation();
 
   if (isLoading) return <PageLoader label="מאמת התחברות…" />;
@@ -28,7 +28,20 @@ export function ProtectedRoute({ allow }) {
   }
 
   if (allow && !allow.includes(user.role)) {
-    return <Navigate to={homeFor(user.role)} replace />;
+    const home = homeFor(user.role);
+    // הגנה מלולאת-הפניות: אם "דף הבית" של התפקיד הוא הנתיב שנחסם
+    // (תפקיד ללא מסכים משלו, למשל receptionist) — מציגים מסך ולא מפנים שוב.
+    if (home === location.pathname) {
+      return (
+        <EmptyState
+          icon="lock"
+          title="אין לתפקיד שלך גישה למסך הזה"
+          description="המסכים עבור התפקיד הזה טרם מומשו במערכת. ניתן להתנתק ולהתחבר בחשבון אחר."
+          action={<Button onClick={logout}>התנתקות</Button>}
+        />
+      );
+    }
+    return <Navigate to={home} replace />;
   }
 
   return <Outlet />;
